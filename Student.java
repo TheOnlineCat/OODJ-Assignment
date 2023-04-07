@@ -7,7 +7,7 @@ public class Student extends User{
         String str = "test1|test2";
         String[] splitstr = str.split("|");
         if (splitstr[0] == "test1"){
-            S
+            
         }
 
 
