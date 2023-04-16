@@ -22,16 +22,21 @@ public class FileHandler{
         }
     }
 
-    public ArrayList<String> read() throws IOException{
+    public ArrayList<String> read(){
         ArrayList<String> data = new ArrayList<String>();
 
-        BufferedReader reader = new BufferedReader(new FileReader(file));
         
-        String curLine;
-        while ((curLine = reader.readLine()) != null) {
-            data.add(curLine);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String curLine;
+            while ((curLine = reader.readLine()) != null) {
+                data.add(curLine);
+            }
+            reader.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        reader.close();
         
         return(data);
     }
@@ -57,12 +62,10 @@ public class FileHandler{
     private String dictAsString(Map<String, ArrayList<String>> dict) {
         //String[] data = new String[dict.size()];
         String data = "";
-        String curStr;
+        
 
         for(String key : dict.keySet()) {
-            curStr = key + SEPERATOR + String.join(SEPERATOR, dict.get(key));
-            //data[count] = curStr;
-            data += curStr + "\n";
+            data += key + SEPERATOR + stringsAsString(dict.get(key)) + "\n";
         }
         
         return(data);
@@ -70,6 +73,13 @@ public class FileHandler{
         // for(Map.Entry<String, ArrayList<String>> key : dict.entrySet()) {
             
         // }
+    }
+
+    public static String stringsAsString(ArrayList<String> strs){
+        String curStr;
+        curStr = String.join(SEPERATOR, strs);
+        //data[count] = curStr;
+        return(curStr);
     }
 
     public void save(Map<String, ArrayList<String>> dict) throws IOException {

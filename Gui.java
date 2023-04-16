@@ -25,7 +25,7 @@ public class Gui extends JFrame{
         this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
 
         headerPanel = new JPanel();
-        titleLabel = new JLabel("Hostel");
+        titleLabel = new JLabel("Hostel 101");
         titleLabel.setFont(new Font("Times New Roman", 1, 30));
         headerPanel.add(titleLabel);
 
@@ -34,7 +34,9 @@ public class Gui extends JFrame{
         //this.setUndecorated(true);
         //this.setShape(new RoundRectangle2D.Double(10, 10, 100, 100, 50, 50));
 
-        this.setPreferredSize(new Dimension(400,400));
+        this.setResizable(false);
+        this.setMinimumSize(new Dimension(540,420));
+        this.setPreferredSize(new Dimension(540,420));
         this.setLocationRelativeTo(null);
         this.setVisible(true);  
     }

@@ -5,7 +5,7 @@ import javax.swing.JFrame;
 public class Main {
     public static void main(String[] args) {
         //System.out.println("Starting");
-        Gui ui =  new Gui("Main");
+        Gui ui =  new Gui("Hostel 101");
 
         LoginPanel loginPanel = new LoginPanel(ui);
         

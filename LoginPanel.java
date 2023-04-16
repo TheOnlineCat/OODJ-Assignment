@@ -82,43 +82,39 @@ public class LoginPanel extends JPanel implements ActionListener{
 
     public void actionPerformed(ActionEvent action) {
         if (action.getActionCommand() == "LOGIN") {
-
-            FileHandler fHandler = new FileHandler("Data//Users.txt");
-            Map<String, ArrayList<String>> records;
-
-            try {
-                records = fHandler.parseAsDict(fHandler.read(), FileHandler.SEPERATOR, 0);
-                ArrayList<String> userLogin = records.get(usernameField.getText());
-                
-                if(userLogin == null) {
-                    System.out.println("User does not exist");
-                    return;
-                }
-
-                if( Arrays.equals(passwordField.getPassword(), userLogin.get(0).toCharArray()) ) {
-                    userLogin.add(usernameField.getText());
-
-                    switch (userLogin.get(1)) {
-                        case "ADMIN":
-                            createAdminPage(userLogin);
-                            break;
-                        case "STUDENT":
-
-                            break;
-                    }
-
-                }
-
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            login();
         }
     }
 
+    private void login() {
+        FileHandler fHandler = new FileHandler("Data//Users.txt");
+            Map<String, ArrayList<String>> records;
+
+            records = fHandler.parseAsDict(fHandler.read(), FileHandler.SEPERATOR, 0);
+            ArrayList<String> userLogin = records.get(usernameField.getText());
+            
+            if(userLogin == null) {
+                System.out.println("User does not exist");
+                return;
+            }
+
+            if( Arrays.equals(passwordField.getPassword(), userLogin.get(0).toCharArray()) ) {
+                userLogin.add(usernameField.getText());
+
+                switch (userLogin.get(1)) {
+                    case "ADMIN":
+                        createAdminPage(userLogin);
+                        break;
+                    case "STUDENT":
+
+                        break;
+                }
+            }
+    }
+
     private void createAdminPage(ArrayList<String> userDetails) {
-        AdminPanel adminPanel = new AdminPanel(userDetails);
+        Admin admin = new Admin(userDetails);
+        Admin.AdminPanel adminPanel = admin.new AdminPanel();
         uiRef.add(adminPanel);
         uiRef.remove(this);
         uiRef.validate();
