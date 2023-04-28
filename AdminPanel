@@ -30,3 +30,82 @@ public class AdminPanel extends JPanel{
         
     }
 }
+
+
+
+
+Dimension labelSize = new Dimension(200, 20);
+
+Application application = new Application(applicationId);
+
+JDialog applicationDialog = new JDialog();
+JPanel applicationPanel = new JPanel();
+applicationPanel.setLayout(new GridBagLayout());
+
+GridBagConstraints c = new GridBagConstraints();
+c.gridx = 0;
+c.gridy = 0;
+JLabel applicationLabel = new JLabel("Application " + applicationId);
+applicationLabel.setPreferredSize(labelSize);
+applicationPanel.add(applicationLabel, c);
+
+c.gridy = 2;
+JLabel typeLabel = new JLabel("Room Type: " + application.getRoomType());
+typeLabel.setPreferredSize(labelSize);
+applicationPanel.add(typeLabel, c);
+
+c.gridy = 3;
+JLabel usernameLabel = new JLabel("Occupied by Username: " + application.getUsername());
+usernameLabel.setPreferredSize(labelSize);
+applicationPanel.add(usernameLabel, c);
+
+c.gridy = 4;
+JLabel dateLabel = new JLabel("Date applied: " + application.getDate());
+dateLabel.setPreferredSize(labelSize);
+applicationPanel.add(dateLabel, c);
+
+c.gridy = 5;
+JPanel buttonPanel = new JPanel();
+buttonPanel.setLayout(new GridBagLayout());
+applicationPanel.add(buttonPanel, c);
+
+
+if (application.getStatus().equals("PENDING")) {
+    c.gridx = 0;
+    c.gridy = 0;
+    JButton acceptButton = new JButton("Accept");
+    acceptButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            application.setStatus("ACCEPTED");
+            application.saveApplication();
+            applicationDialog.dispatchEvent(new WindowEvent(applicationDialog, WindowEvent.WINDOW_CLOSING));
+        }
+    });
+    buttonPanel.add(acceptButton, c);
+
+    c.gridx = 1;
+    c.gridy = 0;
+    JButton rejectButton = new JButton("Reject");
+    rejectButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            application.setStatus("REJECTED");
+            application.saveApplication();
+            applicationDialog.dispatchEvent(new WindowEvent(applicationDialog, WindowEvent.WINDOW_CLOSING));;
+        }
+    });
+    buttonPanel.add(rejectButton, c);
+}else {
+    c.gridy = 5;
+    JLabel statusLabel = new JLabel(application.getStatus());
+    statusLabel.setBorder(BorderFactory.createLoweredBevelBorder());
+    applicationPanel.add(statusLabel, c);
+}
+
+
+applicationDialog.add(applicationPanel);
+applicationDialog.validate();
+applicationDialog.setSize(300, 300);;
+applicationDialog.setLocationRelativeTo(null);
+applicationDialog.setVisible(true);

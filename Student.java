@@ -4,7 +4,6 @@ import java.util.Map;
 
 public class Student { 
 
-
     public static Map<String, ArrayList<String>> getStudent(Map<String, ArrayList<String>> usersDict) {
         Map<String, ArrayList<String>> studentMap = new HashMap<>();
         for(String key : usersDict.keySet()) {

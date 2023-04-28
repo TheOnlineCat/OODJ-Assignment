@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -49,6 +50,7 @@ public class LoginPanel extends JPanel implements ActionListener{
         passwordField.setPreferredSize(new Dimension(100, 20));
         passwordField.setMaximumSize(new Dimension(100, 20));
 
+        c.insets = new Insets(0, 0, 5, 0);
         c.gridx = 0;
         c.gridy = 1;
         detailsPanel.add(userLabel, c);
@@ -87,7 +89,7 @@ public class LoginPanel extends JPanel implements ActionListener{
     }
 
     private void login() {
-        FileHandler fHandler = new FileHandler("Data//Users.txt");
+        FileHandler fHandler = new FileHandler("Users.txt");
             Map<String, ArrayList<String>> records;
 
             records = fHandler.parseAsDict(fHandler.read(), FileHandler.SEPERATOR, 0);
