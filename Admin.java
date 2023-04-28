@@ -41,7 +41,7 @@ public class Admin extends User {
             JPanel applicationPanel = new JPanel();
 
             JPanel applicationListPanel = new JPanel();
-            studentListPanel.setLayout(new BoxLayout(applicationListPanel, BoxLayout.Y_AXIS));
+            applicationListPanel.setLayout(new BoxLayout(applicationListPanel, BoxLayout.Y_AXIS));
             loadStudents(applicationListPanel);
 
             JScrollPane applicationScrollPane = new JScrollPane(applicationListPanel);
