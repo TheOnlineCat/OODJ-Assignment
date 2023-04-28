@@ -100,7 +100,7 @@ public class LoginPanel extends JPanel implements ActionListener{
                 return;
             }
 
-            if( Arrays.equals(passwordField.getPassword(), userLogin.get(0).toCharArray()) ) {
+            if(Arrays.equals(passwordField.getPassword(), userLogin.get(0).toCharArray()) ) {
                 userLogin.add(usernameField.getText());
 
                 switch (userLogin.get(1)) {
@@ -108,7 +108,7 @@ public class LoginPanel extends JPanel implements ActionListener{
                         createAdminPage(userLogin);
                         break;
                     case "STUDENT":
-
+                        createStudentPage(userLogin);
                         break;
                 }
             }
@@ -123,5 +123,13 @@ public class LoginPanel extends JPanel implements ActionListener{
         uiRef.repaint();
     }
 
+    private void createStudentPage(ArrayList<String> userDetails){
+        Student student = new Student(userDetails);
+        Student.StudentPanel studPanel = student.new StudentPanel();
+        uiRef.add(studPanel);
+        uiRef.remove(this);
+        uiRef.validate();
+        uiRef.repaint();
+    }
 
 }

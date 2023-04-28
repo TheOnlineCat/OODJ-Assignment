@@ -75,6 +75,7 @@ public class Gui extends JFrame{
 
         menuBox = new JComboBox<String>(choices);
         menuBox.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 //Gui newWindow = new Gui("HostelApplication");
                 //SwitchWindow();
