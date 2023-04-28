@@ -7,11 +7,12 @@ import java.util.Map;
 public class FileHandler{
     
     static final String SEPERATOR = ";";
+    static final String PATH = "DATA//";
 
     File file;
     
     public FileHandler(String path) {
-        file = new File(path);
+        file = new File(PATH + path);
 
         try {
             if (file.createNewFile()) {
@@ -82,16 +83,19 @@ public class FileHandler{
         return(curStr);
     }
 
-    public void save(Map<String, ArrayList<String>> dict) throws IOException {
-        FileWriter writer = new FileWriter(file);
-        writer.write(dictAsString(dict));
-        writer.close();
+    public void save(Map<String, ArrayList<String>> dict) {
+        try (FileWriter writer = new FileWriter(file, false)) {
+            writer.write(dictAsString(dict));
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Failed to savex");
+        }
     }
 
     
 
     public static boolean Exists(String path){
-        File f = new File(path);
+        File f = new File(PATH + path);
 
         if(f.exists()) {
             System.out.println(path + " found!");
