@@ -218,12 +218,10 @@ public class Admin extends User {
     
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    for(Component comp : applicationButtonPanel.getComponents()) {
-                        JPanel panel = (JPanel)comp;
-                        for(Component label : panel.getComponents()) {
-                            label.setForeground(Color.BLUE);
-                        }
-                    }    
+                    JPanel panel = (JPanel)applicationButtonPanel.getComponent(0);
+                    for(Component label : panel.getComponents()) {
+                        label.setForeground(Color.BLUE);
+                    }   
                 }
     
                 @Override
