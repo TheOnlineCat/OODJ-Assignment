@@ -23,6 +23,14 @@ import javax.swing.*;
 
 public class Student extends User{ 
     
+    public static final String[] DETAILS = {"Password", 
+                                            "Role",
+                                            "Name",
+                                            "Gender",
+                                            "Age",
+                                            "Email",
+                                            "Username"
+                                            };
 
     public Student(ArrayList<String> userDetails) {
         super(userDetails);
