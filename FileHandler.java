@@ -84,11 +84,11 @@ public class FileHandler{
     }
 
     public void save(Map<String, ArrayList<String>> dict) {
-        try (FileWriter writer = new FileWriter(file, false)) {
-            writer.write(dictAsString(dict));
+        try (FileWriter writer = new FileWriter(file, false)) {   //save(data); Map<String, ArrayList<String>> mapObject 
+            writer.write(dictAsString(dict)); // mapObject.put(key, arraylist) #code a way to get the key from the old file and ++
             writer.close();
         } catch (IOException e) {
-            System.out.println("Failed to savex");
+            System.out.println("Failed to save");
         }
     }
 

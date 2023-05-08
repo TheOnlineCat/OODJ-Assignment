@@ -8,17 +8,20 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 
 public class Student extends User{ 
@@ -58,24 +61,26 @@ public class Student extends User{
 
         JPanel jPanel;
         JLabel jlabel;
-        JLabel usernameLabel;
-        JLabel usernameLabel2;
-        JLabel nameLabel;
-        JLabel mailLabel;
-        JLabel roomLabel;
-        JLabel paxLabel;
-        JLabel arrivalLabel;
-        JLabel departureLabel;
-        JLabel specialLabel;
-        JTextField nameField;
-        JTextField mailField;
+        JComboBox<String> paxField;
+        JTextField nameField, mailField, arrivalDField, arrivalMField, arrivalYField, departureDField, departureMField, departureYField;
         JTextArea specialField;
-        JRadioButton roomFieldS;
-        JRadioButton roomFieldM;
-        JRadioButton roomFieldL;
+        JRadioButton roomFieldS, roomFieldM, roomFieldL;
         JButton clearButton;
+        String inputName, inputMail, inputRoom, inputGuests, inputArrDDate, inputArrMDate, inputArrYDate, inputDepDDate, inputDepMDate, inputDepYDate;
+
+        String inputAddReq;
+        String selectedRoomText;
+        String selectedItem;
+
+        ButtonGroup group;
+
+        Map<String, ArrayList<String>> records;
+        DefaultTableModel model;
 
         Dimension labelSize = new Dimension(120, 20);
+        Dimension dateSize = new Dimension(20, 20);
+        Dimension dateYearSize = new Dimension(50, 20);
+
         Font placeholder = new Font("Times New Romans",Font.ITALIC,12); 
         Font text = new Font("Times New Romans",Font.PLAIN,12); 
 
@@ -92,24 +97,20 @@ public class Student extends User{
 
             applicationPanel.add(formPanel, BorderLayout.WEST);
             applicationPanel.add(form2Panel, BorderLayout.EAST);
-            /* 
-            
-            
-            formPanel.validate();
-            formPanel.repaint();
-
-            
-            */
-
-            //FORM 2 (RIGHT)
-            
-  
-
+   
             JPanel availableRooms = new JPanel();
+            JPanel hostelRooms = availableRooms();
+            availableRooms.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (tabbed.getSelectedIndex() == 2) {
+                        loadHostelTable(records, model);
+                    }//NOT WORKING BRUH 
+                }
+            });
+            availableRooms.add(hostelRooms);
 
 
-
-            
             JPanel applicationHistory = new JPanel();
 
    
@@ -124,7 +125,7 @@ public class Student extends User{
         }
         
 
-        private JPanel createLeftForm() {
+        private JPanel createLeftForm() { //left panel
             JPanel formPanel = new JPanel();
             formPanel.setLayout(new GridBagLayout());
             formPanel.setPreferredSize(new Dimension(250, 280));
@@ -136,20 +137,20 @@ public class Student extends User{
             c.weighty = 1;
             c.fill=GridBagConstraints.HORIZONTAL;
 
-            usernameLabel = new JLabel("Username: ");
+            JLabel usernameLabel = new JLabel("Username: ");
             usernameLabel.setMinimumSize(labelSize);
             c.gridx = 0;
             c.gridy = 0;
             formPanel.add(usernameLabel, c);
 
 
-            usernameLabel2 = new JLabel(getUsername());
+            JLabel usernameLabel2 = new JLabel(getUsername());
             usernameLabel2.setMinimumSize(labelSize);
             c.gridx = 1;
             c.gridy = 0;
             formPanel.add(usernameLabel2, c);
             
-            nameLabel = new JLabel("Name: ");
+            JLabel nameLabel = new JLabel("Name: ");
             nameLabel.setMinimumSize(labelSize);
             c.gridx = 0;
             c.gridy = 1;
@@ -160,7 +161,6 @@ public class Student extends User{
             nameField.setColumns(10);
             nameField.setFont(placeholder);
             nameField.setForeground(Color.DARK_GRAY);
-            //nameField.setMinimumSize(new Dimension(100,20));
             c.gridx = 1;
             c.gridy = 1;
             nameField.addFocusListener(new FocusListener() {  //when clicked, placeholder dissappears, when clicked away, placeholder reappears.
@@ -181,7 +181,7 @@ public class Student extends User{
             });
             formPanel.add(nameField, c);
 
-            mailLabel = new JLabel("E-mail: ");
+            JLabel mailLabel = new JLabel("E-mail: ");
             mailLabel.setMinimumSize(labelSize);
             c.gridx = 0;
             c.gridy = 2;
@@ -214,7 +214,7 @@ public class Student extends User{
             formPanel.add(mailField, c);
 
             
-            roomLabel = new JLabel("Room Type: ");
+            JLabel roomLabel = new JLabel("Room Type: ");
             roomLabel.setMinimumSize(labelSize);
             c.gridx = 0;
             c.gridy = 3;
@@ -226,11 +226,12 @@ public class Student extends User{
             roomFieldS = new JRadioButton("Small");
             roomFieldM = new JRadioButton("Medium");
             roomFieldL = new JRadioButton("Large");
-            ButtonGroup group = new ButtonGroup();
+
+            
+            group = new ButtonGroup();
             group.add(roomFieldS);
             group.add(roomFieldM);
             group.add(roomFieldL);
-
 
             radioPanel.add(roomFieldS,c);
             radioPanel.add(roomFieldM,c);
@@ -239,35 +240,52 @@ public class Student extends User{
             c.gridy = 3;
             c.anchor = GridBagConstraints.CENTER; // set anchor to the center
             formPanel.add(radioPanel, c);
-
-
             
-            paxLabel = new JLabel("Number of guests: ");
+            JLabel paxLabel = new JLabel("Number of guests: ");
             paxLabel.setMinimumSize(labelSize);
             c.gridx = 0;
             c.gridy = 4;
             formPanel.add(paxLabel, c);
 
             String[] guestNum = {"1", "2", "3", "3+"}; //feature: 3+ cannot book small room
-            JComboBox<String> paxField = new JComboBox<>(guestNum);
+            paxField = new JComboBox<>(guestNum);
             //paxField.setMinimumSize(new Dimension(100,20));
             c.gridx = 1;
             c.gridy = 4;
             formPanel.add(paxField, c);
+         
 
 
             clearButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
-                    nameField.setText(" "); //clears textfield
+                    nameField.setText("Enter name here"); //clears textfield
                     nameField.setFont(text); //set text back to plain instead of italics
     
-                    mailField.setText(" ");
+                    mailField.setText("Enter e-mail here");
                     mailField.setFont(text);
+
+                    arrivalDField.setText("DD");
+                    arrivalMField.setText("MM");
+                    arrivalYField.setText("YYYY");
+
+                    arrivalDField.setFont(text);
+                    arrivalMField.setFont(text);
+                    arrivalYField.setFont(text);
+
+                    departureDField.setText("DD");
+                    departureMField.setText("MM");
+                    departureYField.setText("YYYY");
+                    
+                    departureDField.setFont(text);
+                    departureMField.setFont(text);
+                    departureYField.setFont(text);
     
-                    specialField.setText(" ");
+                    specialField.setText("Enter additional request here ");
                     specialField.setFont(text);
     
                     group.clearSelection();
+                    
+
     
                     paxField.setSelectedIndex(0);
                 }});
@@ -276,7 +294,7 @@ public class Student extends User{
             return(formPanel);
         }
 
-        private JPanel createRightForm() {
+        private JPanel createRightForm() { //right panel
             JPanel formPanel = new JPanel();
             formPanel.setLayout(new GridBagLayout());
             formPanel.setPreferredSize(new Dimension(250, 280));
@@ -287,25 +305,186 @@ public class Student extends User{
             c.weighty = 1;
             
 
-            arrivalLabel = new JLabel("Date of arrival: ");
+            JLabel arrivalLabel = new JLabel("Date of arrival: ");
+            arrivalLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             arrivalLabel.setMinimumSize(labelSize);
             arrivalLabel.setPreferredSize(labelSize);
-            arrivalLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
             c.gridx = 0;
             c.gridy = 0;
             formPanel.add(arrivalLabel, c);
 
-            departureLabel = new JLabel("Date of departure: ");
+
+            arrivalDField = new JTextField("DD"); 
+            arrivalMField = new JTextField("MM");     
+            arrivalYField  = new JTextField("YYYY");                  //change to three text box in panel
+            arrivalDField.setMinimumSize(dateSize);
+            arrivalDField.setPreferredSize(dateSize);
+            arrivalDField.setFont(placeholder);
+            arrivalDField.setForeground(Color.DARK_GRAY);
+            c.gridx = 1;
+            c.gridy = 0;
+            formPanel.add(arrivalDField, c);
+
+
+
+            arrivalDField.addFocusListener(new FocusListener() {   
+                @Override
+                public void focusGained(FocusEvent event){
+                    if(arrivalDField.getText().equals("DD")){
+                        arrivalDField.setText("");
+                        arrivalDField.setFont(text);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent event){
+                    if (arrivalDField.getText().equals("")){
+                        arrivalDField.setText("DD");
+                        arrivalDField.setFont(placeholder);
+                    }
+                }
+            });
+
+            arrivalMField.setMinimumSize(dateSize);
+            arrivalMField.setPreferredSize(dateSize);
+            arrivalMField.setFont(placeholder);
+            arrivalMField.setForeground(Color.DARK_GRAY);
+            // GridBagConstraints c2 = new GridBagConstraints();
+            // c2.insets = new Insets(0, 5, 20, 5);
+            c.gridx = 2;
+            c.gridy = 0;
+            formPanel.add(arrivalMField, c);
+            
+            arrivalMField.addFocusListener(new FocusListener() {   
+                @Override
+                public void focusGained(FocusEvent event){
+                    if(arrivalMField.getText().equals("MM")){
+                        arrivalMField.setText("");
+                        arrivalMField.setFont(text);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent event){
+                    if (arrivalMField.getText().equals("")){
+                        arrivalMField.setText("MM");
+                        arrivalMField.setFont(placeholder);
+                    }
+                }
+            });
+
+
+            arrivalYField.setMinimumSize(dateYearSize);
+            arrivalYField.setPreferredSize(dateYearSize);
+            arrivalYField.setFont(placeholder);
+            arrivalYField.setForeground(Color.DARK_GRAY);
+            // GridBagConstraints c3 = new GridBagConstraints();
+            // c3.insets = new Insets(0, 5, 20, 5);
+            c.gridx = 3;
+            c.gridy = 0;
+            formPanel.add(arrivalYField, c);
+
+
+
+            arrivalYField.addFocusListener(new FocusListener() {   
+                @Override
+                public void focusGained(FocusEvent event){
+                    if(arrivalYField.getText().equals("YYYY")){
+                        arrivalYField.setText("");
+                        arrivalYField.setFont(text);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent event){
+                    if (arrivalYField.getText().equals("")){
+                        arrivalYField.setText("YYYY");
+                        arrivalYField.setFont(placeholder);
+                    }
+                }
+            });
+            
+            JLabel departureLabel = new JLabel("Date of departure: ");
+            departureLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             departureLabel.setMinimumSize(labelSize);
             departureLabel.setPreferredSize(labelSize);
-            departureLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
             c.gridx = 0;
             c.gridy = 1;
             formPanel.add(departureLabel, c);
 
-            specialLabel = new JLabel("Additional Request: ");
+            departureDField = new JTextField("DD");
+            departureDField.setMinimumSize(dateSize);
+            departureDField.setPreferredSize(dateSize);
+            departureDField.setFont(placeholder);
+            departureDField.setForeground(Color.DARK_GRAY);
+            c.gridx = 1;
+            c.gridy = 1;
+            formPanel.add(departureDField, c);
+            departureDField.addFocusListener(new FocusListener() {   
+                @Override
+                public void focusGained(FocusEvent event){
+                    if(departureDField.getText().equals("DD")){
+                        departureDField.setText("");
+                        departureDField.setFont(text);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent event){
+                    if (departureDField.getText().equals("")){
+                        departureDField.setText("DD");
+                        departureDField.setFont(placeholder);
+                    }
+                }
+            });
+
+            departureMField = new JTextField("MM");
+            departureMField.setMinimumSize(dateSize);
+            departureMField.setPreferredSize(dateSize);
+            departureMField.setFont(placeholder);
+            departureMField.setForeground(Color.DARK_GRAY);
+            c.gridx = 2;
+            c.gridy = 1;
+            formPanel.add(departureMField, c);
+            departureMField.addFocusListener(new FocusListener() {   
+                @Override
+                public void focusGained(FocusEvent event){
+                    if(departureMField.getText().equals("MM")){
+                        departureMField.setText("");
+                        departureMField.setFont(text);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent event){
+                    if (departureMField.getText().equals("")){
+                        departureMField.setText("MM");
+                        departureMField.setFont(placeholder);
+                    }
+                }
+            });
+
+            departureYField = new JTextField("YYYY");
+            departureYField.setMinimumSize(dateYearSize);
+            departureYField.setPreferredSize(dateYearSize);
+            departureYField.setFont(placeholder);
+            departureYField.setForeground(Color.DARK_GRAY);
+            c.gridx = 3;
+            c.gridy = 1;
+            formPanel.add(departureYField, c);
+            departureDField.addFocusListener(new FocusListener() {   
+                @Override
+                public void focusGained(FocusEvent event){
+                    if(departureDField.getText().equals("YYYY")){
+                        departureDField.setText("");
+                        departureDField.setFont(text);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent event){
+                    if (departureDField.getText().equals("")){
+                        departureDField.setText("YYYY");
+                        departureDField.setFont(placeholder);
+                    }
+                }
+            });
+
+            JLabel specialLabel = new JLabel("Additional Request: ");
             specialLabel.setMinimumSize(labelSize);
             specialLabel.setPreferredSize(labelSize);
             c.gridx = 0;
@@ -314,6 +493,7 @@ public class Student extends User{
             formPanel.add(specialLabel, c);
 
            
+
             //special requests text field
             specialField = new JTextArea("Enter additional request here");
             specialField.setRows(5);
@@ -355,83 +535,345 @@ public class Student extends User{
             reserveButton.setPreferredSize(new Dimension(100, 30));
             c.gridx = 1;
             c.gridy = 4;
-            formPanel.add(reserveButton, c);
             reserveButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(ActionEvent e) {
-                    JDialog cfmDialog = createReservationForm();
-                    cfmDialog.setVisible(true);
+                    inputName = nameField.getText();
+                    inputMail = mailField.getText();
+                    for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {
+                        AbstractButton button = buttons.nextElement();
+                        if (button.isSelected()) {
+                            selectedRoomText = button.getText();
+                            break;
+                        }else selectedRoomText = null;
+                    }
+                    if (paxField != null){
+                        selectedItem = (String) paxField.getSelectedItem();
+                    }
+                    inputArrDDate = arrivalDField.getText();
+                    inputArrMDate = arrivalMField.getText();
+                    inputArrYDate = arrivalYField.getText();
+
+                    inputDepDDate = departureDField.getText();
+                    inputDepMDate = departureMField.getText();
+                    inputDepYDate = departureYField.getText();
+
+
+                    inputAddReq = specialField.getText();
+
+                    if (inputName == "Enter name Here" || inputName.isEmpty() ||
+                        inputMail == "Enter" || inputMail.isEmpty() ||
+                        selectedItem == null ||
+                        selectedRoomText == null ||
+                        inputArrDDate == null || inputArrDDate.isEmpty() ||
+                        inputArrMDate == null || inputArrMDate.isEmpty() ||
+                        inputArrYDate == null || inputArrYDate.isEmpty() ||
+                        inputDepDDate == null || inputDepDDate.isEmpty() ||
+                        inputDepMDate == null || inputDepMDate.isEmpty() ||
+                        inputDepYDate == null || inputDepYDate.isEmpty()
+                        ) {
+                        JOptionPane.showMessageDialog(formPanel, "Please fill in all fields!", "Error Message", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JDialog cfmDialog = createReservationForm();
+                        cfmDialog.setVisible(true);
+                       
+                    }
                 }
+
             });
+            formPanel.add(reserveButton, c);
 
             return(formPanel);
         }
 
         private JDialog createReservationForm() {
+            
             JDialog cfmDialog = new JDialog();
+            cfmDialog.setTitle("Confirm Reservation");
             cfmDialog.setPreferredSize(new Dimension(380, 400));        
             cfmDialog.setMinimumSize(new Dimension(380, 400));
             cfmDialog.setMaximumSize(new Dimension(380, 400));
-            cfmDialog.setResizable(false);
-
-            GridBagConstraints f = new GridBagConstraints();  
+            cfmDialog.setLocationRelativeTo(null);
+            cfmDialog.setResizable(true);
             cfmDialog.setModal(true);
+
+
+            JPanel cfmPanel = new JPanel(new GridBagLayout());  // set layout manager to GridBagLayout
+            cfmPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            cfmPanel.setLayout(new GridBagLayout());
+            cfmDialog.add(cfmPanel);  // add panel to dialog
+
+            GridBagConstraints f = new GridBagConstraints();
+            f.insets = new Insets(0, 5, 20, 5);
+            JLabel nameLabel2 = new JLabel("Name: ");
+            nameLabel2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             f.gridx = 0;
             f.gridy = 0;    
-            JLabel nameLabel2 = new JLabel("Name: ");
-            cfmDialog.add(nameLabel2);
+            nameLabel2.setMinimumSize(labelSize);
+            nameLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(nameLabel2, f);
+
+            JLabel nameField2 = new JLabel(inputName);
+            nameField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            f.gridx = 1;
+            f.gridy = 0;    
+            nameField2.setMinimumSize(labelSize);
+            nameField2.setPreferredSize(labelSize);
+            cfmPanel.add(nameField2, f);
 
             JLabel mailLabel2 = new JLabel("E-Mail: ");
-            f.gridy = 1;            
-            cfmDialog.add(mailLabel2);                                               
+            mailLabel2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            f.gridx = 0;            
+            f.gridy = 1;           
+            mailLabel2.setMinimumSize(labelSize);
+            mailLabel2.setPreferredSize(labelSize); 
+            cfmPanel.add(mailLabel2, f);        
+
+            JLabel mailField2 = new JLabel(inputMail);
+            mailField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            f.gridx = 1;
+            f.gridy = 1;    
+            mailField2.setMinimumSize(labelSize);
+            mailField2.setPreferredSize(labelSize);
+            cfmPanel.add(mailField2, f);
 
             JLabel roomLabel2 = new JLabel("Room Type: ");
+            f.gridx = 0;
             f.gridy = 2;
-            cfmDialog.add(roomLabel2);
+            roomLabel2.setMinimumSize(labelSize);
+            roomLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(roomLabel2, f);
+
+            JLabel selectedRoomLabel = new JLabel(selectedRoomText);
+            f.gridx = 1;
+            f.gridy = 2;    
+            selectedRoomLabel.setMinimumSize(labelSize);
+            selectedRoomLabel.setPreferredSize(labelSize);
+            cfmPanel.add(selectedRoomLabel, f);
 
             JLabel paxLabel2 = new JLabel("Number of guests: ");
+            f.gridx = 0;
             f.gridy = 3;
-            cfmDialog.add(paxLabel2);
+            paxLabel2.setMinimumSize(labelSize);
+            paxLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(paxLabel2, f);
+
+            JLabel paxField2 = new JLabel(selectedItem);
+            f.gridx = 1;
+            f.gridy = 3;
+            paxField2.setMinimumSize(labelSize);
+            paxField2.setPreferredSize(labelSize);
+            cfmPanel.add(paxField2, f);
 
             JLabel arrivalLabel2 = new JLabel("Date of arrival: ");
+            f.gridx = 0;
             f.gridy = 4;
-            cfmDialog.add(arrivalLabel2);
+            arrivalLabel2.setMinimumSize(labelSize);
+            arrivalLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(arrivalLabel2, f);
+
+            JLabel arrivalDField2 = new JLabel(inputArrDDate);
+            f.gridx = 1;
+            f.gridy = 4;    
+            arrivalDField2.setMinimumSize(dateSize);
+            arrivalDField2.setPreferredSize(dateSize);
+            arrivalDField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            cfmPanel.add(arrivalDField2, f);
+
+            JLabel arrivalMField2 = new JLabel(inputArrMDate);
+            f.gridx = 2;
+            f.gridy = 4;    
+            arrivalMField2.setMinimumSize(dateSize);
+            arrivalMField2.setPreferredSize(dateSize);
+            arrivalMField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            cfmPanel.add(arrivalMField2, f);
+
+            JLabel arrivalYField2 = new JLabel(inputArrYDate);
+            f.gridx = 3;
+            f.gridy = 4;    
+            arrivalYField2.setMinimumSize(dateYearSize);
+            arrivalYField2.setPreferredSize(dateYearSize);
+            cfmPanel.add(arrivalYField2, f);
 
             JLabel departureLabel2 = new JLabel("Date of departure: ");
+            f.gridx = 0;
             f.gridy = 5;
-            cfmDialog.add(departureLabel2);
+            departureLabel2.setMinimumSize(labelSize);
+            departureLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(departureLabel2, f);
+
+            JLabel departureDField2 = new JLabel(inputDepDDate);
+            f.gridx = 1;
+            f.gridy = 5;    
+            departureDField2.setMinimumSize(dateSize);
+            departureDField2.setPreferredSize(dateSize);
+            cfmPanel.add(departureDField2, f);
+
+            JLabel departureMField2 = new JLabel(inputDepMDate);
+            f.gridx = 2;
+            f.gridy = 5;    
+            departureMField2.setMinimumSize(dateSize);
+            departureMField2.setPreferredSize(dateSize);
+            cfmPanel.add(departureMField2, f);
+
+            JLabel departureYField2 = new JLabel(inputDepYDate);
+            f.gridx = 3;
+            f.gridy = 5;    
+            departureYField2.setMinimumSize(dateYearSize);
+            departureYField2.setPreferredSize(dateYearSize);
+            cfmPanel.add(departureYField2, f);
 
             JLabel specialLabel2 = new JLabel("Additional Request: ");
+            f.gridx = 0;
             f.gridy = 6;
-            cfmDialog.add(specialLabel2);
-            cfmDialog.setLocationRelativeTo(null);
+            specialLabel2.setMinimumSize(labelSize);
+            specialLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(specialLabel2, f);
+
+            JLabel specialField2 = new JLabel(inputAddReq);
+            f.gridx = 1;
+            f.gridy = 6;    
+            specialField2.setMinimumSize(labelSize);
+            specialField2.setPreferredSize(labelSize);
+            cfmPanel.add(specialField2, f);
+
+            JButton cancelButton = new JButton("Cancel", null);
+            f.gridx = 0;
+            f.gridy = 7; 
+            cancelButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Window window = SwingUtilities.getWindowAncestor(cfmPanel);
+                    window.dispose();
+                }
+            });
+            cfmPanel.add(cancelButton, f);
+
+            JButton cfmButton = new JButton("Confirm", null);
+            f.gridx = 1;
+            f.gridy = 7; 
+            cfmButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+            cfmPanel.add(cfmButton, f);
 
             return(cfmDialog);
         }
-    }
     
+        // private JPanel availableRooms(){
+        //     JPanel hostelPanel = new JPanel();
+            
+        //     DefaultTableModel model = new DefaultTableModel(){
+        //         @Override
+        //         public boolean isCellEditable(int row, int column) {
+        //             return false; // Make all cells read-only
+        //         }
+        //     };
+        //     model.addColumn("Hostel ID");
+        //     model.addColumn("Room Size");
+        //     model.addColumn("Availability");
+        //     model.addColumn("Price");
+            
+        //     Map<String, ArrayList<String>> records;
+        //     FileHandler fileHandler = new FileHandler("Hostels.txt");        
+        //     records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        //     for(String key : records.keySet()) {
+        //         String[] details = {key, //hostel id
+        //             records.get(key).get(0), //room size
+        //             records.get(key).get(1), //availability
+        //             records.get(key).get(2), //price
+        //         };
+        //         model.addRow(details);  
+        //     }
+            
+        //     JTable hostelRooms = new JTable(model);
+        //     hostelRooms.getTableHeader().setReorderingAllowed(false); // Disable column reordering
+        //     JScrollPane scrollPane = new JScrollPane(hostelRooms);
+        //     hostelPanel.add(scrollPane);
+        //     return(hostelPanel);
+        // }
 
-    
-    // public void actionPerformed(ActionEvent e){       *to change the price label when different option is selected.
-    //     if (e.getSource() == roomFieldS){             
+       
+        // private void loadHostelTable() {
+        //     model.setRowCount(0); // Clear existing data in the table
+            
+        //     Map<String, ArrayList<String>> records;
+        //     FileHandler fileHandler = new FileHandler("Hostels.txt");        
+        //     records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        //     for (String key : records.keySet()) {
+        //         String[] details = {
+        //             key, // hostel id
+        //             records.get(key).get(0), // room size
+        //             records.get(key).get(1), // availability
+        //             records.get(key).get(2) // price
+        //         };
+        //         model.addRow(details);  
+        //     }
+        // }
+       
+       
+        private JPanel availableRooms() {
+            JPanel hostelPanel = new JPanel();
+        
+            
+            FileHandler fileHandler = new FileHandler("Hostels.txt");
+            records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        
+            model = createTableModel();
+            loadHostelTable(records, model);
+        
+            JTable hostelRooms = new JTable(model);
+            hostelRooms.getTableHeader().setReorderingAllowed(false); // Disable column reordering
+        
+            JScrollPane scrollPane = new JScrollPane(hostelRooms);
+            hostelPanel.add(scrollPane);
+        
+            return hostelPanel;
+        }
+        
+        private DefaultTableModel createTableModel() {
+            DefaultTableModel model = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false; // Make all cells read-only
+                }
+            };
+            model.addColumn("Hostel ID");
+            model.addColumn("Room Size");
+            model.addColumn("Availability");
+            model.addColumn("Price");
+        
+            return model;
+        }
+        
+        private void loadHostelTable(Map<String, ArrayList<String>> records, DefaultTableModel model) {
+            model.setRowCount(0); // Clear existing data in the table
+            for (String key : records.keySet()) {
+                ArrayList<String> details = records.get(key);
+                if (details.size() >= 3) {
+                    String[] rowData = {
+                        key, // hostel id
+                        details.get(0), // room size
+                        details.get(1), // availability
+                        details.get(2) // price
+                    };
+                    model.addRow(rowData);
+                }
+            }
+        } 
 
-    //     }
-    //     else if (e.getSource() == roomFieldM){
-
-    //     }
-    //     else if (e.getSource() == roomFieldL){
-
-    //     }
-                  
-    // }
-
-
-
-
-           
-
-
+        private void saveApplication(){
+            FileHandler fileHandler = new FileHandler("myFile.txt");
+        Map<String, ArrayList<String>> myData = new HashMap<>();
+        // add data to myData map
+        fileHandler.save(myData);
+        }
 
     }
+}
 
         
 
