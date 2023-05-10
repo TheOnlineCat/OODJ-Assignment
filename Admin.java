@@ -146,7 +146,7 @@ public class Admin extends User {
                     hostelInfo.get(1), //price
                     hostelInfo.get(2) //Availability
                 };
-                JPanel hostelButtonPanel = createRecordButton(details);
+                JPanel hostelButtonPanel = Gui.createRecordButton(details);
                 hostelButtonPanel.addMouseListener(new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -226,7 +226,7 @@ public class Admin extends User {
                     key, //username
                     student.getName() //name
                     };
-                JPanel studentButtonPanel = createRecordButton(details);
+                JPanel studentButtonPanel = Gui.createRecordButton(details);
                 studentButtonPanel.addMouseListener(new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -271,7 +271,7 @@ public class Admin extends User {
                     records.get(key).get(2), //Approved Status
                     records.get(key).get(3) //Date
                 };
-                JPanel applicationButtonPanel = createRecordButton(details);
+                JPanel applicationButtonPanel = Gui.createRecordButton(details);
                 applicationButtonPanel.addMouseListener(new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -330,36 +330,6 @@ public class Admin extends User {
                 panelRef.add(applicationButtonPanel, FlowLayout.LEFT);
             }
         }
-
-        private JPanel createRecordButton(String[] details) {
-            int rowSize = 460;
-            JPanel recordPanel = new JPanel();
-            recordPanel.setBorder(BorderFactory.createMatteBorder(2, 1, 2, 1, Color.GRAY));
-            recordPanel.setMaximumSize(new Dimension(rowSize, 20));
-            recordPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    
-            JPanel textPanel = new JPanel();
-            textPanel.setLayout(new GridBagLayout());
-            textPanel.setMaximumSize(new Dimension(700, 20));
-            GridBagConstraints c = new GridBagConstraints();
-            //c.insets = new Insets(3, 3, 3, 3);
-            c.gridx = 0;
-            c.gridy = 0;
-            for(int i = 0; i < details.length; i++) {
-                JLabel label = new JLabel(details[i]);
-                label.setName(Integer.toString(i));
-                label.setMinimumSize(new Dimension(rowSize/details.length,16));
-                label.setPreferredSize(new Dimension(rowSize/details.length, 16));
-                label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-                textPanel.add(label, c);
-                c.gridx += 1;
-                
-            }
-            recordPanel.add(textPanel);
-            return(recordPanel);
-        }
-
-        
 
         private class HostelDialog extends JDialog{
             Hostel hostel;
