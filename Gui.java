@@ -1,7 +1,9 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -39,6 +41,33 @@ public class Gui extends JFrame{
         this.setPreferredSize(new Dimension(520,420));
         this.setLocationRelativeTo(null);
         this.setVisible(true);  
+    }
+    public static JPanel createRecordButton(String[] details) {
+        int rowSize = 460;
+        JPanel recordPanel = new JPanel();
+        recordPanel.setBorder(BorderFactory.createMatteBorder(2, 1, 2, 1, Color.GRAY));
+        recordPanel.setMaximumSize(new Dimension(rowSize, 20));
+        recordPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new GridBagLayout());
+        textPanel.setMaximumSize(new Dimension(700, 20));
+        GridBagConstraints c = new GridBagConstraints();
+        //c.insets = new Insets(3, 3, 3, 3);
+        c.gridx = 0;
+        c.gridy = 0;
+        for(int i = 0; i < details.length; i++) {
+            JLabel label = new JLabel(details[i]);
+            label.setName(Integer.toString(i));
+            label.setMinimumSize(new Dimension(rowSize/details.length,16));
+            label.setPreferredSize(new Dimension(rowSize/details.length, 16));
+            label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+            textPanel.add(label, c);
+            c.gridx += 1;
+            
+        }
+        recordPanel.add(textPanel);
+        return(recordPanel);
     }
 
     public static void displayLabelGrid(JPanel panelRef, ArrayList<String> info, String[] labels, int start) {
