@@ -1,4 +1,6 @@
 admin;password;ADMIN;John
 admin2;password;ADMIN;Jacob
-student;password;STUDENT;Hua Xuen
+student;password;STUDENT;Yi Xing;MALE;20;Xing@mail.com
+HUAXUEN;password;STUDENT;David;MALE;20;David123@mail.com
+
 a;1;STUDENT;aa

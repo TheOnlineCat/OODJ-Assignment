@@ -4,6 +4,10 @@ public class User {
     private String username;
     private String name; 
 
+    public User(String username) {
+        this.username = username;
+    }
+
     public User(ArrayList<String> userDetails) {
         loadInfo(userDetails);
     }
@@ -24,4 +28,5 @@ public class User {
         this.username = data.get(3);
         this.name = data.get(2);
     }
+
 }

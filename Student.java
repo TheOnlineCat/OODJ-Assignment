@@ -16,6 +16,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,11 +28,72 @@ import javax.swing.table.DefaultTableModel;
 
 
 public class Student extends User{ 
+    
+    private String gender;
+    private int age;
+    private String mail;
+    public static final String[] DETAILS = {
+                                            "Name",
+                                            "Gender",
+                                            "Age",
+                                            "Email",
+                                            "Username"
+                                            };
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+    public String getMail() {
+        return mail;
+    }
+
+    public void setMail(String mail) {
+        this.mail = mail;
+    }
 
     public Student(ArrayList<String> userDetails) {
         super(userDetails);
-        getUsername();
-        getName();
+    }
+
+    public Student(String username) {
+        super(username);
+        FileHandler fileHandler = new FileHandler("Users.txt");
+        Map<String, ArrayList<String>> userDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        for(String key : userDict.keySet()) {
+            if(username.equals(key)) {
+                loadInfo(userDict.get(key));
+            }
+        }
+    }
+
+    @Override
+    public void loadInfo(ArrayList<String> data) {
+        setName(data.get(2));
+        gender = data.get(3);
+        age = Integer.parseInt( data.get(4) );
+        mail = data.get(5);
+    }
+
+    public ArrayList<String> getInfo() {
+        ArrayList<String> list = new ArrayList<String>(Arrays.asList(
+            getName(), 
+            gender, 
+            Integer.toString(age), 
+            mail
+            ));
+        return list;
     }
 
     public static Map<String, ArrayList<String>> getStudent(Map<String, ArrayList<String>> usersDict) {
