@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
 
@@ -65,8 +67,9 @@ public class Student extends User{
 
         ButtonGroup group;
 
-        Map<String, ArrayList<String>> records;
-        DefaultTableModel model;
+        Map<String, ArrayList<String>> records, history;
+        DefaultTableModel model, model2;
+        
 
         Dimension labelSize = new Dimension(120, 20);
         Dimension dateSize = new Dimension(20, 20);
@@ -75,12 +78,121 @@ public class Student extends User{
         Font placeholder = new Font("Times New Romans",Font.ITALIC,12); 
         Font text = new Font("Times New Romans",Font.PLAIN,12); 
 
+        private JPanel appHistory(){
+            FileHandler fileHandler = new FileHandler("Applications.txt");
+            history = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        
+            String columns2[] = {"Hostel ID","Room Size", "Username", "Status", "Payment", "Arrival Date", "Departure Date"};
+            model2 = createHistoryModel(columns2);
+            loadHistory(history, model2);
+
+            JPanel historyPanel = new JPanel();
+            JTable appHistoryTable = new JTable(model2);
+            appHistoryTable.getTableHeader().setReorderingAllowed(false); // Disable column reordering
+            appHistoryTable.getTableHeader().setResizingAllowed(false);
+            JScrollPane scrollPane = new JScrollPane(appHistoryTable);
+            historyPanel.add(scrollPane);
+
+            return historyPanel;
+        }
+        
+        private void loadHistory(Map<String, ArrayList<String>> history, DefaultTableModel model2){
+            model2.setRowCount(0); // Clear existing data in the table
+            int i = 0;
+            String currentUser = getUsername();
+            for (String key : history.keySet()) {
+                ArrayList<String> details = history.get(key);
+                if (details.size() >= 6 && details.get(1).equals(currentUser)) {
+                    String[] rowData = {
+                        key, // hostel id
+                        details.get(0), // room size
+                        details.get(1), // username
+                        details.get(2), // status
+                        details.get(3), // payment status
+                        details.get(4), // date of arrival
+                        details.get(5) // date of departure
+                        };
+                    
+                    model2.addRow(rowData);
+                    i++;
+                }
+            }
+           
+        }
+
+        private JPanel availableRooms() {
+            JPanel hostelPanel = new JPanel();
+        
+            FileHandler fileHandler = new FileHandler("Hostels.txt");
+            records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        
+            String columns[] = {"Hostel ID","Room Size","Availability","Price"};
+            model = createTableModel(columns);
+            loadHostelTable(records, model);
+        
+            JTable hostelRooms = new JTable(model);
+            
+            hostelRooms.getTableHeader().setReorderingAllowed(false);// Disable column reordering
+            hostelRooms.getTableHeader().setResizingAllowed(false);
+        
+            JScrollPane scrollPane = new JScrollPane(hostelRooms);
+            hostelPanel.add(scrollPane);
+        
+            return hostelPanel;
+        }
+
+        private DefaultTableModel createTableModel(String[] columns) {
+            DefaultTableModel model = new DefaultTableModel() {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false; // Make all cells read-only
+                }
+            };
+            for(String each: columns){
+                model.addColumn(each);
+            }
+            return model;
+        }
+
+        private DefaultTableModel createHistoryModel(String[] columns2){
+            DefaultTableModel model2 = new DefaultTableModel(){
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false; // Make all cells read-only
+                }
+            };
+            for(String each : columns2){
+                model2.addColumn(each);
+            }
+            return model2;
+        }
+        
+        
+        private void loadHostelTable(Map<String, ArrayList<String>> records, DefaultTableModel model) {
+            model.setRowCount(0); // Clear existing data in the table
+            int i = 0;
+            for (String key : records.keySet()) {
+                ArrayList<String> details = records.get(key);
+                if (details.size() >= 3) {
+                    String[] rowData = {
+                        key, // hostel id
+                        details.get(0), // room size
+                        details.get(1), // availability
+                        details.get(2) // price
+                    };
+                    
+                    model.addRow(rowData);
+                    i++;
+                }
+            }
+        } 
+
 
         public StudentPanel(){  
             //FORM 1 (LEFT)
             JTabbedPane tabbed = new JTabbedPane();
             
-            JPanel applicationPanel = new JPanel();
+            JPanel applicationPanel = new JPanel(); //first tabbed panel
             applicationPanel.setLayout(new BorderLayout());
 
             JPanel form2Panel = createRightForm();
@@ -89,22 +201,23 @@ public class Student extends User{
             applicationPanel.add(formPanel, BorderLayout.WEST);
             applicationPanel.add(form2Panel, BorderLayout.EAST);
    
-            JPanel availableRooms = new JPanel();
-            JPanel hostelRooms = availableRooms();
-            availableRooms.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (tabbed.getSelectedIndex() == 2) {
-                        loadHostelTable(records, model);
-                    }//NOT WORKING BRUH 
+            JPanel availableRooms = new JPanel(); //second tabbed panel
+
+            tabbed.addChangeListener(new ChangeListener() { //add the Listener
+                public void stateChanged(ChangeEvent e) {
+                    if(tabbed.getSelectedIndex() == 1){
+                        JPanel hostelRooms = availableRooms();
+                        availableRooms.removeAll();
+                        availableRooms.add(hostelRooms);
+                        availableRooms.revalidate();
+                        availableRooms.repaint();
+                    }
                 }
             });
-            availableRooms.add(hostelRooms);
 
-
-            JPanel applicationHistory = new JPanel();
-
-   
+            JPanel applicationHistory = new JPanel(); //third tabbed panel
+            applicationHistory.add(appHistory());
+            
             tabbed.addTab("Make Hostel Application", applicationPanel);
             tabbed.addTab("Available Rooms", availableRooms);
             tabbed.addTab("Application History", applicationHistory);
@@ -120,7 +233,6 @@ public class Student extends User{
             JPanel formPanel = new JPanel();
             formPanel.setLayout(new GridBagLayout());
             formPanel.setPreferredSize(new Dimension(250, 280));
-            formPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             
             GridBagConstraints c = new GridBagConstraints();    
             c.insets = new Insets(0, 5, 20, 5);
@@ -289,34 +401,27 @@ public class Student extends User{
             JPanel formPanel = new JPanel();
             formPanel.setLayout(new GridBagLayout());
             formPanel.setPreferredSize(new Dimension(250, 280));
-            formPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(0, 5, 20, 5);
+            //c.insets = new Insets(0, 5, 20, 5);
             c.weightx = 1;
             c.weighty = 1;
             
 
             JLabel arrivalLabel = new JLabel("Date of arrival: ");
-            arrivalLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             arrivalLabel.setMinimumSize(labelSize);
             arrivalLabel.setPreferredSize(labelSize);
             c.gridx = 0;
             c.gridy = 0;
             formPanel.add(arrivalLabel, c);
 
-
-            arrivalDField = new JTextField("DD"); 
-            arrivalMField = new JTextField("MM");     
-            arrivalYField  = new JTextField("YYYY");                  //change to three text box in panel
+            JPanel datePanel = new JPanel(new GridBagLayout());
+            arrivalDField = new JTextField("DD", 2);                  //change to three text box in panel
             arrivalDField.setMinimumSize(dateSize);
             arrivalDField.setPreferredSize(dateSize);
             arrivalDField.setFont(placeholder);
             arrivalDField.setForeground(Color.DARK_GRAY);
-            c.gridx = 1;
-            c.gridy = 0;
-            formPanel.add(arrivalDField, c);
-
-
+            c.gridx = 0;
+            datePanel.add(arrivalDField, c);
 
             arrivalDField.addFocusListener(new FocusListener() {   
                 @Override
@@ -335,15 +440,14 @@ public class Student extends User{
                 }
             });
 
+            arrivalMField = new JTextField("MM", 2);     
             arrivalMField.setMinimumSize(dateSize);
             arrivalMField.setPreferredSize(dateSize);
             arrivalMField.setFont(placeholder);
             arrivalMField.setForeground(Color.DARK_GRAY);
-            // GridBagConstraints c2 = new GridBagConstraints();
-            // c2.insets = new Insets(0, 5, 20, 5);
-            c.gridx = 2;
-            c.gridy = 0;
-            formPanel.add(arrivalMField, c);
+
+            c.gridx = 1;
+            datePanel.add(arrivalMField, c);
             
             arrivalMField.addFocusListener(new FocusListener() {   
                 @Override
@@ -363,15 +467,15 @@ public class Student extends User{
             });
 
 
+            arrivalYField  = new JTextField("YYYY", 4);
             arrivalYField.setMinimumSize(dateYearSize);
             arrivalYField.setPreferredSize(dateYearSize);
             arrivalYField.setFont(placeholder);
             arrivalYField.setForeground(Color.DARK_GRAY);
-            // GridBagConstraints c3 = new GridBagConstraints();
-            // c3.insets = new Insets(0, 5, 20, 5);
-            c.gridx = 3;
-            c.gridy = 0;
-            formPanel.add(arrivalYField, c);
+            c.gridx = 2;
+            datePanel.add(arrivalYField, c);
+            c.gridx = 1;
+            formPanel.add(datePanel, c);
 
 
 
@@ -393,21 +497,21 @@ public class Student extends User{
             });
             
             JLabel departureLabel = new JLabel("Date of departure: ");
-            departureLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             departureLabel.setMinimumSize(labelSize);
             departureLabel.setPreferredSize(labelSize);
             c.gridx = 0;
             c.gridy = 1;
             formPanel.add(departureLabel, c);
 
-            departureDField = new JTextField("DD");
+            JPanel departureDatePanel = new JPanel(new GridBagLayout());
+            departureDField = new JTextField("DD", 2);
             departureDField.setMinimumSize(dateSize);
             departureDField.setPreferredSize(dateSize);
             departureDField.setFont(placeholder);
             departureDField.setForeground(Color.DARK_GRAY);
-            c.gridx = 1;
+            c.gridx = 0;
             c.gridy = 1;
-            formPanel.add(departureDField, c);
+            departureDatePanel.add(departureDField, c);
             departureDField.addFocusListener(new FocusListener() {   
                 @Override
                 public void focusGained(FocusEvent event){
@@ -425,14 +529,13 @@ public class Student extends User{
                 }
             });
 
-            departureMField = new JTextField("MM");
+            departureMField = new JTextField("MM", 2);
             departureMField.setMinimumSize(dateSize);
             departureMField.setPreferredSize(dateSize);
             departureMField.setFont(placeholder);
             departureMField.setForeground(Color.DARK_GRAY);
-            c.gridx = 2;
-            c.gridy = 1;
-            formPanel.add(departureMField, c);
+            c.gridx = 1;
+            departureDatePanel.add(departureMField, c);
             departureMField.addFocusListener(new FocusListener() {   
                 @Override
                 public void focusGained(FocusEvent event){
@@ -450,14 +553,13 @@ public class Student extends User{
                 }
             });
 
-            departureYField = new JTextField("YYYY");
+            departureYField = new JTextField("YYYY", 4);
             departureYField.setMinimumSize(dateYearSize);
             departureYField.setPreferredSize(dateYearSize);
             departureYField.setFont(placeholder);
             departureYField.setForeground(Color.DARK_GRAY);
-            c.gridx = 3;
-            c.gridy = 1;
-            formPanel.add(departureYField, c);
+            c.gridx = 2;
+            departureDatePanel.add(departureYField, c);
             departureDField.addFocusListener(new FocusListener() {   
                 @Override
                 public void focusGained(FocusEvent event){
@@ -474,6 +576,8 @@ public class Student extends User{
                     }
                 }
             });
+            c.gridx = 1;
+            formPanel.add(departureDatePanel, c);
 
             JLabel specialLabel = new JLabel("Additional Request: ");
             specialLabel.setMinimumSize(labelSize);
@@ -597,7 +701,6 @@ public class Student extends User{
             GridBagConstraints f = new GridBagConstraints();
             f.insets = new Insets(0, 5, 20, 5);
             JLabel nameLabel2 = new JLabel("Name: ");
-            nameLabel2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             f.gridx = 0;
             f.gridy = 0;    
             nameLabel2.setMinimumSize(labelSize);
@@ -605,7 +708,6 @@ public class Student extends User{
             cfmPanel.add(nameLabel2, f);
 
             JLabel nameField2 = new JLabel(inputName);
-            nameField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             f.gridx = 1;
             f.gridy = 0;    
             nameField2.setMinimumSize(labelSize);
@@ -613,7 +715,6 @@ public class Student extends User{
             cfmPanel.add(nameField2, f);
 
             JLabel mailLabel2 = new JLabel("E-Mail: ");
-            mailLabel2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             f.gridx = 0;            
             f.gridy = 1;           
             mailLabel2.setMinimumSize(labelSize);
@@ -621,7 +722,6 @@ public class Student extends User{
             cfmPanel.add(mailLabel2, f);        
 
             JLabel mailField2 = new JLabel(inputMail);
-            mailField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             f.gridx = 1;
             f.gridy = 1;    
             mailField2.setMinimumSize(labelSize);
@@ -668,7 +768,6 @@ public class Student extends User{
             f.gridy = 4;    
             arrivalDField2.setMinimumSize(dateSize);
             arrivalDField2.setPreferredSize(dateSize);
-            arrivalDField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             cfmPanel.add(arrivalDField2, f);
 
             JLabel arrivalMField2 = new JLabel(inputArrMDate);
@@ -676,7 +775,6 @@ public class Student extends User{
             f.gridy = 4;    
             arrivalMField2.setMinimumSize(dateSize);
             arrivalMField2.setPreferredSize(dateSize);
-            arrivalMField2.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             cfmPanel.add(arrivalMField2, f);
 
             JLabel arrivalYField2 = new JLabel(inputArrYDate);
@@ -753,108 +851,16 @@ public class Student extends User{
 
             return(cfmDialog);
         }
-    
-        // private JPanel availableRooms(){
-        //     JPanel hostelPanel = new JPanel();
-            
-        //     DefaultTableModel model = new DefaultTableModel(){
-        //         @Override
-        //         public boolean isCellEditable(int row, int column) {
-        //             return false; // Make all cells read-only
-        //         }
-        //     };
-        //     model.addColumn("Hostel ID");
-        //     model.addColumn("Room Size");
-        //     model.addColumn("Availability");
-        //     model.addColumn("Price");
-            
-        //     Map<String, ArrayList<String>> records;
-        //     FileHandler fileHandler = new FileHandler("Hostels.txt");        
-        //     records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        //     for(String key : records.keySet()) {
-        //         String[] details = {key, //hostel id
-        //             records.get(key).get(0), //room size
-        //             records.get(key).get(1), //availability
-        //             records.get(key).get(2), //price
-        //         };
-        //         model.addRow(details);  
-        //     }
-            
-        //     JTable hostelRooms = new JTable(model);
-        //     hostelRooms.getTableHeader().setReorderingAllowed(false); // Disable column reordering
-        //     JScrollPane scrollPane = new JScrollPane(hostelRooms);
-        //     hostelPanel.add(scrollPane);
-        //     return(hostelPanel);
-        // }
+    }
+        
 
-       
-        // private void loadHostelTable() {
-        //     model.setRowCount(0); // Clear existing data in the table
-            
-        //     Map<String, ArrayList<String>> records;
-        //     FileHandler fileHandler = new FileHandler("Hostels.txt");        
-        //     records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        //     for (String key : records.keySet()) {
-        //         String[] details = {
-        //             key, // hostel id
-        //             records.get(key).get(0), // room size
-        //             records.get(key).get(1), // availability
-        //             records.get(key).get(2) // price
-        //         };
-        //         model.addRow(details);  
-        //     }
-        // }
-       
-       
-        private JPanel availableRooms() {
-            JPanel hostelPanel = new JPanel();
         
             
-            FileHandler fileHandler = new FileHandler("Hostels.txt");
-            records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+            
+
         
-            model = createTableModel();
-            loadHostelTable(records, model);
+
         
-            JTable hostelRooms = new JTable(model);
-            hostelRooms.getTableHeader().setReorderingAllowed(false); // Disable column reordering
-        
-            JScrollPane scrollPane = new JScrollPane(hostelRooms);
-            hostelPanel.add(scrollPane);
-        
-            return hostelPanel;
-        }
-        
-        private DefaultTableModel createTableModel() {
-            DefaultTableModel model = new DefaultTableModel() {
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false; // Make all cells read-only
-                }
-            };
-            model.addColumn("Hostel ID");
-            model.addColumn("Room Size");
-            model.addColumn("Availability");
-            model.addColumn("Price");
-        
-            return model;
-        }
-        
-        private void loadHostelTable(Map<String, ArrayList<String>> records, DefaultTableModel model) {
-            model.setRowCount(0); // Clear existing data in the table
-            for (String key : records.keySet()) {
-                ArrayList<String> details = records.get(key);
-                if (details.size() >= 3) {
-                    String[] rowData = {
-                        key, // hostel id
-                        details.get(0), // room size
-                        details.get(1), // availability
-                        details.get(2) // price
-                    };
-                    model.addRow(rowData);
-                }
-            }
-        } 
 
         private void saveApplication(){
             FileHandler fileHandler = new FileHandler("myFile.txt");
@@ -864,7 +870,7 @@ public class Student extends User{
         }
 
     }
-}
+
 
         
 

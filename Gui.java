@@ -34,7 +34,7 @@ public class Gui extends JFrame{
         //this.setUndecorated(true);
         //this.setShape(new RoundRectangle2D.Double(10, 10, 100, 100, 50, 50));
 
-        this.setResizable(false);
+        this.setResizable(true);
         this.setMinimumSize(new Dimension(520,420));
         this.setPreferredSize(new Dimension(520,420));
         this.setLocationRelativeTo(null);
