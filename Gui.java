@@ -1,14 +1,14 @@
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
 import java.awt.Image;
-import java.awt.Panel;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -41,8 +41,70 @@ public class Gui extends JFrame{
         this.setVisible(true);  
     }
 
-    
+    public static void displayLabelGrid(JPanel panelRef, ArrayList<String> info, String[] labels, int start) {
+        Dimension labelSize = new Dimension(0, 20);
+        GridBagConstraints c = new GridBagConstraints();
+        c.weighty = 1;
+        for(int idx = start; idx < info.size(); idx++) {
+            c.gridy = idx;
+            c.gridx = 0;
+            c.weightx = 1;
+            labelSize.width = 20;
+            JLabel leftLabel = new JLabel(labels[idx] + ": ");
+            leftLabel.setPreferredSize(labelSize);
+            panelRef.add(leftLabel, c);
 
+            c.gridx = 1;
+            c.weightx = 4;
+            labelSize.width = 130;
+            JLabel rightLabel = new JLabel(info.get(idx), SwingConstants.RIGHT);
+            rightLabel.setPreferredSize(labelSize);
+            panelRef.add(rightLabel, c);
+
+            panelRef.validate();
+        } 
+    }
+
+    public static void displayFormGrid(JPanel panelRef, ArrayList<String> initialInfo, String[] labels, int start) {
+        Dimension labelSize = new Dimension(90, 20);
+        Dimension textFieldSize = new Dimension(150, 20);
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.weighty = 1;
+        for(int idx = start; idx < initialInfo.size(); idx++) {
+            c.gridy = idx;
+            c.gridx = 0;
+            c.weightx = 1;
+            //c.insets = new Insets(0, 0, 0, 2);
+            
+            JLabel leftLabel = new JLabel(labels[idx] + ": ", SwingConstants.RIGHT);
+            leftLabel.setMinimumSize(labelSize);
+            leftLabel.setMaximumSize(labelSize);
+            leftLabel.setPreferredSize(labelSize);
+            //leftLabel.setBorder(BorderFactory.createBevelBorder(0));
+            panelRef.add(leftLabel, c);
+
+            c.gridx = 1;
+            c.weightx = 4;
+            JTextField rightField = new JTextField(initialInfo.get(idx));
+            rightField.setPreferredSize(textFieldSize);
+            rightField.setMinimumSize(textFieldSize);
+            rightField.setMaximumSize(textFieldSize);
+            rightField.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    rightField.setForeground(Color.BLACK);
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {}
+                
+            });
+            panelRef.add(rightField, c);
+
+            panelRef.validate();
+        } 
+    }
     // private void SwitchWindow(Panel window){
     //     //Create Button
     //     backButton = new JButton();
@@ -71,19 +133,19 @@ public class Gui extends JFrame{
         return(button);
     }
 
-    private JComboBox<String> createMenu(String[] choices) {
+    // private JComboBox<String> createMenu(String[] choices) {
 
-        menuBox = new JComboBox<String>(choices);
-        menuBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //Gui newWindow = new Gui("HostelApplication");
-                //SwitchWindow();
-                System.out.println("switch");
-            }
-        });
+    //     menuBox = new JComboBox<String>(choices);
+    //     menuBox.addActionListener(new ActionListener() {
+    //         @Override
+    //         public void actionPerformed(ActionEvent e) {
+    //             //Gui newWindow = new Gui("HostelApplication");
+    //             //SwitchWindow();
+    //             System.out.println("switch");
+    //         }
+    //     });
 
-        menuBox.setVisible(false);
-        return(menuBox);
-    }
+    //     menuBox.setVisible(false);
+    //     return(menuBox);
+    // }
 }

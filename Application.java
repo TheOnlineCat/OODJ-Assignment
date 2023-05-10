@@ -82,7 +82,7 @@ public class Application {
     }
 
     public void saveApplication(){
-        List<String> newInfo = Arrays.asList(roomType, username, status, this.getDate());
+        List<String> newInfo = Arrays.asList(roomType, username, this.getDate(), status);
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
