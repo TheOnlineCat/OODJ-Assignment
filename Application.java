@@ -81,17 +81,28 @@ public class Application {
         return(false);
     }
 
+    public void deleteApplication () {
+        FileHandler fileHandler = new FileHandler("Applications.txt");
+        Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        applicationDict.remove(applicationID);
+        fileHandler.save(applicationDict);
+    }
+
+    public static void deleteApplication (String appID) {
+        FileHandler fileHandler = new FileHandler("Applications.txt");
+        Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        applicationDict.remove(appID);
+        fileHandler.save(applicationDict);
+    }
+
+
     public void saveApplication(){
         List<String> newInfo = Arrays.asList(roomType, username, this.getDate(), status);
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        for(String key : applicationDict.keySet()) {
-            if(applicationID.equals(key)) {
-                applicationDict.put(key, new ArrayList<String>(newInfo));
-                fileHandler.save(applicationDict);
-                return;
-            }
-        }
+        applicationDict.put(applicationID, new ArrayList<String>(newInfo));
+        fileHandler.save(applicationDict);  
+        return;
     }
 }
