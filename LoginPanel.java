@@ -108,7 +108,7 @@ public class LoginPanel extends JPanel implements ActionListener{
                         createAdminPage(userLogin);
                         break;
                     case "STUDENT":
-                        createStudentPage(userLogin);
+                        createStudentPage(usernameField.getText());
                         break;
                 }
             }
@@ -123,8 +123,8 @@ public class LoginPanel extends JPanel implements ActionListener{
         uiRef.repaint();
     }
 
-    private void createStudentPage(ArrayList<String> userDetails){
-        Student student = new Student(userDetails);
+    private void createStudentPage(String username){
+        Student student = new Student(username);
         Student.StudentPanel studPanel = student.new StudentPanel();
         uiRef.add(studPanel);
         uiRef.remove(this);

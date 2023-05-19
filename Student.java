@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.ScrollPane;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,20 +16,32 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
-
+//make it more object oriented (evv now is done in one method)
 public class Student extends User{ 
-    
+  
     private String gender;
     private int age;
     private String mail;
@@ -67,7 +80,7 @@ public class Student extends User{
         super(userDetails);
     }
 
-    public Student(String username) {
+    public Student(String username) {  //store the relevant info depending on the user that logged in
         super(username);
         FileHandler fileHandler = new FileHandler("Users.txt");
         Map<String, ArrayList<String>> userDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
@@ -79,7 +92,7 @@ public class Student extends User{
     }
 
     @Override
-    public void loadInfo(ArrayList<String> data) {
+    public void loadInfo(ArrayList<String> data) { //override the admin 'info' to get all details of students (admin only gets username)
         setName(data.get(2));
         gender = data.get(3);
         age = Integer.parseInt( data.get(4) );
@@ -96,7 +109,7 @@ public class Student extends User{
         return list;
     }
 
-    public static Map<String, ArrayList<String>> getStudent(Map<String, ArrayList<String>> usersDict) {
+    public static Map<String, ArrayList<String>> getStudent(Map<String, ArrayList<String>> usersDict) { //gets the student specifically from a map of users
         Map<String, ArrayList<String>> studentMap = new HashMap<>();
         for(String key : usersDict.keySet()) {
             if(usersDict.get(key).get(1).equals("STUDENT")) {
@@ -121,62 +134,224 @@ public class Student extends User{
         JTextArea specialField;
         JRadioButton roomFieldS, roomFieldM, roomFieldL;
         JButton clearButton;
-        String inputName, inputMail, inputRoom, inputGuests, inputArrDDate, inputArrMDate, inputArrYDate, inputDepDDate, inputDepMDate, inputDepYDate;
+        String inputName, inputMail, inputRoom, inputGuests, inputArrDDate, inputArrMDate, inputArrYDate, inputDepDDate, inputDepMDate, inputDepYDate,ArrDate, DepDate;
 
         String inputAddReq;
         String selectedRoomText;
         String selectedItem;
 
+        LocalDate arrDateParsed = null;
+        LocalDate DepDateParsed = null;
+
         ButtonGroup group;
 
-        Map<String, ArrayList<String>> records, history;
+        Map<String, ArrayList<String>> records, history, payment, paid;
         DefaultTableModel model, model2;
         
 
         Dimension labelSize = new Dimension(120, 20);
-        Dimension dateSize = new Dimension(20, 20);
+        Dimension dateSize = new Dimension(50, 20);
         Dimension dateYearSize = new Dimension(50, 20);
+
 
         Font placeholder = new Font("Times New Romans",Font.ITALIC,12); 
         Font text = new Font("Times New Romans",Font.PLAIN,12); 
+
+        private JPanel payment(){
+            
+            FileHandler fileHandler = new FileHandler("Applications.txt");
+            payment = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+
+            JPanel paymentPanel = new JPanel();
+
+            JPanel paymentListPanel = new JPanel();
+            paymentListPanel.setLayout(new BoxLayout(paymentListPanel, BoxLayout.Y_AXIS));
+            loadPayment(payment, paymentListPanel);
+
+            
+
+            JScrollPane paymentScroll = new JScrollPane(paymentListPanel);
+            paymentScroll.setPreferredSize(new Dimension(480, 260));
+            paymentScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            paymentPanel.add(paymentScroll);
+
+            return paymentPanel;
+        }
+
+        private void loadPayment(Map<String, ArrayList<String>> payment, JPanel panelRef){
+            String[] titles = {"Username", "Application ID", "Apply Status", "Payment Status", "Price"};
+
+            String currentUser = getUsername();
+            for (String key : payment.keySet()) {
+                ArrayList<String> details = payment.get(key);
+                if (details.get(1).equals(currentUser)) {
+                    String[] paymentData = {
+                        key, // hostel id
+                        details.get(0), // room type
+                        details.get(3), // username
+                        details.get(4), // request status
+                        details.get(5)}; // payment status
+
+                    ArrayList<String> paymentDetails = new ArrayList<String>();
+                    paymentDetails.add(getUsername());      
+                    paymentDetails.add(details.get(0));
+                    paymentDetails.add(details.get(1));
+                    paymentDetails.add(details.get(5));
+                    paymentDetails.add(details.get(6));
+
+
+
+
+
+                    JPanel paymentButtonPanel = Gui.createRecordButton(paymentData);
+                    details.add(0, key); //index=0 is the username, then the rest is the subsequent data
+                    paymentButtonPanel.addMouseListener(new MouseListener() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            JDialog paymentDialog = new JDialog();
+                            JPanel paymentDialogPanel = new JPanel();
+                            System.out.println(details.get(5));
+                            Gui.displayLabelGrid(paymentDialogPanel, details, Application.DETAILS, 0); //ref, content, headers, start index
+                            
+                            if (details.get(6).equals("UNPAID")){
+                                JButton payButton = new JButton("Make Payment");
+                                payButton.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                    JDialog paymentCheckDialog = new JDialog();
+                                    JPanel paymentCheckDialogPanel = new JPanel();
+                                    Gui.displayLabelGrid(paymentCheckDialogPanel, paymentDetails, titles, 0); //only make it so that display label grid shows payment details
+                                    
+
+                                    JButton cfmPayButton = new JButton("Confirm Payment");
+                                    payButton.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            FileHandler fileHandler = new FileHandler("Applications.txt");
+                                            paid = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+                                            
+                                            
+                                        }
+                                    });
+                                    paymentCheckDialogPanel.setPreferredSize(new Dimension(300, 200));
+                                    paymentCheckDialogPanel.setMinimumSize(new Dimension(300, 200));
+                                    paymentCheckDialog.add(paymentCheckDialogPanel);
+                                    paymentCheckDialog.setPreferredSize(new Dimension(300, 280));
+                                    paymentCheckDialog.setMinimumSize(new Dimension(300, 280));
+                                    paymentCheckDialog.setLocationRelativeTo(null);
+                                    paymentCheckDialog.setVisible(true);
+                                    }
+                                });
+                                paymentDialogPanel.add(payButton);
+                            }
+                            
+                            
+                            paymentDialog.add(paymentDialogPanel);
+                            paymentDialog.setPreferredSize(new Dimension(300, 280));
+                            paymentDialog.setMinimumSize(new Dimension(300, 280));
+                            paymentDialog.setLocationRelativeTo(null);
+                            paymentDialog.setVisible(true);
+                            paymentDialog.setResizable(false);
+                        }
+
+                        @Override
+                        public void mousePressed(MouseEvent e) {}
+
+                        @Override
+                        public void mouseReleased(MouseEvent e) {}
+
+                        @Override
+                        public void mouseEntered(MouseEvent e) {
+                            JPanel panel = (JPanel)paymentButtonPanel.getComponent(0);
+                            for(Component labels : panel.getComponents()) {
+                                labels.setForeground(Color.BLUE);
+                            }
+                        }
+
+                        @Override
+                        public void mouseExited(MouseEvent e) {
+                            JPanel panel = (JPanel)paymentButtonPanel.getComponent(0);
+                            for(Component labels : panel.getComponents()) {
+                                labels.setForeground(Color.BLACK);
+                            }
+                        }
+                    });
+
+                    panelRef.add(paymentButtonPanel);
+                }
+            }
+           
+        }
 
         private JPanel appHistory(){
             FileHandler fileHandler = new FileHandler("Applications.txt");
             history = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         
-            String columns2[] = {"Hostel ID","Room Size", "Username", "Status", "Payment", "Arrival Date", "Departure Date"};
-            model2 = createHistoryModel(columns2);
-            loadHistory(history, model2);
-
             JPanel historyPanel = new JPanel();
-            JTable appHistoryTable = new JTable(model2);
-            appHistoryTable.getTableHeader().setReorderingAllowed(false); // Disable column reordering
-            appHistoryTable.getTableHeader().setResizingAllowed(false);
-            JScrollPane scrollPane = new JScrollPane(appHistoryTable);
+
+            JPanel historyListPanel = new JPanel();
+            historyListPanel.setLayout(new BoxLayout(historyListPanel, BoxLayout.Y_AXIS));
+            loadHistory(history, historyListPanel);
+
+            JScrollPane scrollPane = new JScrollPane(historyListPanel);
+            scrollPane.setPreferredSize(new Dimension(480, 260));
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             historyPanel.add(scrollPane);
 
             return historyPanel;
         }
         
-        private void loadHistory(Map<String, ArrayList<String>> history, DefaultTableModel model2){
-            model2.setRowCount(0); // Clear existing data in the table
-            int i = 0;
+        private void loadHistory(Map<String, ArrayList<String>> history, JPanel panelRef){
+            // model2.setRowCount(0); // Clear existing data in the table
             String currentUser = getUsername();
             for (String key : history.keySet()) {
                 ArrayList<String> details = history.get(key);
-                if (details.size() >= 6 && details.get(1).equals(currentUser)) {
+                if (details.get(1).equals(currentUser)) {
                     String[] rowData = {
                         key, // hostel id
-                        details.get(0), // room size
                         details.get(1), // username
                         details.get(2), // status
                         details.get(3), // payment status
-                        details.get(4), // date of arrival
-                        details.get(5) // date of departure
                         };
-                    
-                    model2.addRow(rowData);
-                    i++;
+
+                    JPanel historyButtonPanel = Gui.createRecordButton(rowData);
+                    details.add(0, key); //index=0 is the username, then the rest is the subsequent data
+                    historyButtonPanel.addMouseListener(new MouseListener() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            JDialog historyDialog = new JDialog();
+                            JPanel historyDialogPanel = new JPanel();
+                            Gui.displayLabelGrid(historyDialogPanel, details, Application.DETAILS, 0); //ref, content, headers, start index
+                            historyDialog.add(historyDialogPanel);
+                            historyDialog.setSize(300, 230);
+                            historyDialog.setLocationRelativeTo(null);
+                            historyDialog.setVisible(true);
+                        }
+
+                        @Override
+                        public void mousePressed(MouseEvent e) {}
+
+                        @Override
+                        public void mouseReleased(MouseEvent e) {}
+
+                        @Override
+                        public void mouseEntered(MouseEvent e) {
+                            JPanel panel = (JPanel)historyButtonPanel.getComponent(0);
+                            for(Component labels : panel.getComponents()) {
+                                labels.setForeground(Color.BLUE);
+                            }
+                        }
+
+                        @Override
+                        public void mouseExited(MouseEvent e) {
+                            JPanel panel = (JPanel)historyButtonPanel.getComponent(0);
+                            for(Component labels : panel.getComponents()) {
+                                labels.setForeground(Color.BLACK);
+                            }
+                        }
+                    });
+
+                    panelRef.add(historyButtonPanel);
                 }
             }
            
@@ -216,23 +391,10 @@ public class Student extends User{
             return model;
         }
 
-        private DefaultTableModel createHistoryModel(String[] columns2){
-            DefaultTableModel model2 = new DefaultTableModel(){
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false; // Make all cells read-only
-                }
-            };
-            for(String each : columns2){
-                model2.addColumn(each);
-            }
-            return model2;
-        }
-        
+
         
         private void loadHostelTable(Map<String, ArrayList<String>> records, DefaultTableModel model) {
             model.setRowCount(0); // Clear existing data in the table
-            int i = 0;
             for (String key : records.keySet()) {
                 ArrayList<String> details = records.get(key);
                 if (details.size() >= 3) {
@@ -244,7 +406,6 @@ public class Student extends User{
                     };
                     
                     model.addRow(rowData);
-                    i++;
                 }
             }
         } 
@@ -279,10 +440,14 @@ public class Student extends User{
 
             JPanel applicationHistory = new JPanel(); //third tabbed panel
             applicationHistory.add(appHistory());
-            
+
+            JPanel paymentTab = new JPanel(); //fourth tabbed panel
+            paymentTab.add(payment());
+
             tabbed.addTab("Make Hostel Application", applicationPanel);
             tabbed.addTab("Available Rooms", availableRooms);
             tabbed.addTab("Application History", applicationHistory);
+            tabbed.addTab("Payment", paymentTab);
             tabbed.setMinimumSize(new Dimension(500,300));
             tabbed.setPreferredSize(new Dimension(500,300));
             tabbed.setVisible(true);
@@ -297,7 +462,7 @@ public class Student extends User{
             formPanel.setPreferredSize(new Dimension(250, 280));
             
             GridBagConstraints c = new GridBagConstraints();    
-            c.insets = new Insets(0, 5, 20, 5);
+            c.insets = new Insets(0, 5, 25, 5);
             c.weightx = 1;
             c.weighty = 1;
             c.fill=GridBagConstraints.HORIZONTAL;
@@ -432,7 +597,8 @@ public class Student extends User{
                     arrivalDField.setText("DD");
                     arrivalMField.setText("MM");
                     arrivalYField.setText("YYYY");
-
+                    
+                    
                     arrivalDField.setFont(text);
                     arrivalMField.setFont(text);
                     arrivalYField.setFont(text);
@@ -464,7 +630,7 @@ public class Student extends User{
             formPanel.setLayout(new GridBagLayout());
             formPanel.setPreferredSize(new Dimension(250, 280));
             GridBagConstraints c = new GridBagConstraints();
-            //c.insets = new Insets(0, 5, 20, 5);
+            
             c.weightx = 1;
             c.weighty = 1;
             
@@ -472,6 +638,7 @@ public class Student extends User{
             JLabel arrivalLabel = new JLabel("Date of arrival: ");
             arrivalLabel.setMinimumSize(labelSize);
             arrivalLabel.setPreferredSize(labelSize);
+            arrivalLabel.setBorder(BorderFactory.createLineBorder(Color.black));
             c.gridx = 0;
             c.gridy = 0;
             formPanel.add(arrivalLabel, c);
@@ -538,6 +705,7 @@ public class Student extends User{
             datePanel.add(arrivalYField, c);
             c.gridx = 1;
             formPanel.add(datePanel, c);
+            datePanel.setBorder(BorderFactory.createLineBorder(Color.black));
 
 
 
@@ -557,10 +725,12 @@ public class Student extends User{
                     }
                 }
             });
+        
             
             JLabel departureLabel = new JLabel("Date of departure: ");
             departureLabel.setMinimumSize(labelSize);
             departureLabel.setPreferredSize(labelSize);
+            departureLabel.setBorder(BorderFactory.createLineBorder(Color.black));
             c.gridx = 0;
             c.gridy = 1;
             formPanel.add(departureLabel, c);
@@ -622,19 +792,19 @@ public class Student extends User{
             departureYField.setForeground(Color.DARK_GRAY);
             c.gridx = 2;
             departureDatePanel.add(departureYField, c);
-            departureDField.addFocusListener(new FocusListener() {   
+            departureYField.addFocusListener(new FocusListener() {   
                 @Override
                 public void focusGained(FocusEvent event){
-                    if(departureDField.getText().equals("YYYY")){
-                        departureDField.setText("");
-                        departureDField.setFont(text);
+                    if(departureYField.getText().equals("YYYY")){
+                        departureYField.setText("");
+                        departureYField.setFont(text);
                     }
                 }
                 @Override
                 public void focusLost(FocusEvent event){
-                    if (departureDField.getText().equals("")){
-                        departureDField.setText("YYYY");
-                        departureDField.setFont(placeholder);
+                    if (departureYField.getText().equals("")){
+                        departureYField.setText("YYYY");
+                        departureYField.setFont(placeholder);
                     }
                 }
             });
@@ -644,6 +814,7 @@ public class Student extends User{
             JLabel specialLabel = new JLabel("Additional Request: ");
             specialLabel.setMinimumSize(labelSize);
             specialLabel.setPreferredSize(labelSize);
+            specialLabel.setBorder(BorderFactory.createLineBorder(Color.black));
             c.gridx = 0;
             c.gridy = 2;
             c.anchor = GridBagConstraints.NORTH; // set anchor to the top
@@ -689,6 +860,23 @@ public class Student extends User{
             formPanel.add(clearButton, c);
 
             JButton reserveButton = new JButton("Apply", null);
+            Pattern datePattern = Pattern.compile("^\\d{2}-\\d{2}-\\d{4}$"); //regular expression to check if string input == valid date pattern
+            DateTimeFormatter zdrFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            Calendar calendar = Calendar.getInstance();
+            // Date today = calendar.getTime();
+            // SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")); 
+            // sdf.setLenient(false); // so that the pattern has to match the specified format
+            // String todayString = sdf.format(today);  
+            LocalDate todayDate = LocalDate.parse(today,zdrFormatter);
+                    // try {
+                    //     todayDate = LocalDate.parse(today, zdrFormatter); 
+                    //     // String formattedTodayDate = todayDate.format(zdrFormatter);
+                    //     // System.out.println(formattedTodayDate);
+                    // } catch (DateTimeParseException ex) {
+                    //     ex.printStackTrace();
+                    // } 
+         
             reserveButton.setPreferredSize(new Dimension(100, 30));
             c.gridx = 1;
             c.gridy = 4;
@@ -707,40 +895,92 @@ public class Student extends User{
                     if (paxField != null){
                         selectedItem = (String) paxField.getSelectedItem();
                     }
+                    // Date todayDate = null;
+                    // try {
+                    //     todayDate = sdf.parse(todayString); 
+                    //     // String formattedTodayDate = todayDate.format(zdrFormatter);
+                    //     // System.out.println(formattedTodayDate);
+                    // } catch (DateTimeParseException ex) {
+                    //     ex.printStackTrace();
+                    // }
+
                     inputArrDDate = arrivalDField.getText();
                     inputArrMDate = arrivalMField.getText();
-                    inputArrYDate = arrivalYField.getText();
-
+                    inputArrYDate = arrivalYField.getText();    
+                    String ArrDate = inputArrDDate + "-" + inputArrMDate + "-" + inputArrYDate;
+                    System.out.println(ArrDate);
+                    try {     //try catch to parse string to date
+                        arrDateParsed = LocalDate.parse(ArrDate, zdrFormatter);
+                        arrivalDField.setForeground(Color.BLACK);
+                        arrivalMField.setForeground(Color.BLACK);
+                        arrivalYField.setForeground(Color.BLACK);
+                    } catch (DateTimeParseException ex) {
+                        JOptionPane.showMessageDialog(formPanel, "Invalid date entered", "Error Message", JOptionPane.ERROR_MESSAGE);
+                        arrivalDField.setForeground(Color.RED);
+                        arrivalMField.setForeground(Color.RED);
+                        arrivalYField.setForeground(Color.RED);
+                        return;
+                    }
                     inputDepDDate = departureDField.getText();
                     inputDepMDate = departureMField.getText();
                     inputDepYDate = departureYField.getText();
+                    
+                    String DepDate = inputDepDDate + "-" + inputDepMDate + "-" + inputDepYDate;
+                    try {
+                        DepDateParsed = LocalDate.parse(DepDate, zdrFormatter);
+                        departureDField.setForeground(Color.BLACK);
+                        departureMField.setForeground(Color.BLACK);
+                        departureYField.setForeground(Color.BLACK);
+                    } catch (DateTimeParseException ex) {
+                        JOptionPane.showMessageDialog(formPanel, "Invalid date entered", "Error Message", JOptionPane.ERROR_MESSAGE);
+                        departureDField.setForeground(Color.RED);
+                        departureMField.setForeground(Color.RED);
+                        departureYField.setForeground(Color.RED);
+                        return;
+                    }
 
+                    
+                    if (arrDateParsed != null) {
+                        if (arrDateParsed.compareTo(todayDate) < 0){
+                            JOptionPane.showMessageDialog(formPanel, "Please enter a valid date (cannot enter an arrival date before the current date)", "Error Message", JOptionPane.ERROR_MESSAGE);
+                            arrivalDField.setForeground(Color.RED);
+                            arrivalMField.setForeground(Color.RED);
+                            arrivalYField.setForeground(Color.RED);
+                            return;
+                        } else if (DepDateParsed != null) {
+                            if (DepDateParsed.compareTo(todayDate) < 0) {
+                                JOptionPane.showMessageDialog(formPanel, "Please enter a valid date (cannot enter a departure date before the current date)", "Error Message", JOptionPane.ERROR_MESSAGE);
+                                departureDField.setForeground(Color.RED);
+                                departureMField.setForeground(Color.RED);
+                                departureYField.setForeground(Color.RED);
+                                return;
+                            } else if (DepDateParsed.compareTo(arrDateParsed) < 0) {
+                                JOptionPane.showMessageDialog(formPanel, "Please enter a valid date (cannot enter a departure date before the arrival date)", "Error Message", JOptionPane.ERROR_MESSAGE);
+                                departureDField.setForeground(Color.RED);
+                                departureMField.setForeground(Color.RED);
+                                departureYField.setForeground(Color.RED);
+                                return;
+                            }
+                        }
+                    }
 
                     inputAddReq = specialField.getText();
-
-                    if (inputName == "Enter name Here" || inputName.isEmpty() ||
-                        inputMail == "Enter" || inputMail.isEmpty() ||
+                    
+                    if (inputName == "Enter name here" || inputName.isEmpty() || 
+                        inputMail == "Enter e-mail here" || inputMail.isEmpty() ||
                         selectedItem == null ||
                         selectedRoomText == null ||
-                        inputArrDDate == null || inputArrDDate.isEmpty() ||
-                        inputArrMDate == null || inputArrMDate.isEmpty() ||
-                        inputArrYDate == null || inputArrYDate.isEmpty() ||
-                        inputDepDDate == null || inputDepDDate.isEmpty() ||
-                        inputDepMDate == null || inputDepMDate.isEmpty() ||
-                        inputDepYDate == null || inputDepYDate.isEmpty()
-                        ) {
+                        specialField.getText() == "Enter additional request here")
                         JOptionPane.showMessageDialog(formPanel, "Please fill in all fields!", "Error Message", JOptionPane.ERROR_MESSAGE);
-                    } else {
+                     else {
                         JDialog cfmDialog = createReservationForm();
                         cfmDialog.setVisible(true);
-                       
-                    }
-                }
+                    }    
+                }});
 
-            });
             formPanel.add(reserveButton, c);
-
-            return(formPanel);
+            
+            return formPanel;
         }
 
         private JDialog createReservationForm() {
@@ -825,26 +1065,12 @@ public class Student extends User{
             arrivalLabel2.setPreferredSize(labelSize);
             cfmPanel.add(arrivalLabel2, f);
 
-            JLabel arrivalDField2 = new JLabel(inputArrDDate);
+            JLabel arrivalField2 = new JLabel(inputArrDDate + "-" + inputArrMDate + "-" + inputArrYDate);
             f.gridx = 1;
             f.gridy = 4;    
-            arrivalDField2.setMinimumSize(dateSize);
-            arrivalDField2.setPreferredSize(dateSize);
-            cfmPanel.add(arrivalDField2, f);
-
-            JLabel arrivalMField2 = new JLabel(inputArrMDate);
-            f.gridx = 2;
-            f.gridy = 4;    
-            arrivalMField2.setMinimumSize(dateSize);
-            arrivalMField2.setPreferredSize(dateSize);
-            cfmPanel.add(arrivalMField2, f);
-
-            JLabel arrivalYField2 = new JLabel(inputArrYDate);
-            f.gridx = 3;
-            f.gridy = 4;    
-            arrivalYField2.setMinimumSize(dateYearSize);
-            arrivalYField2.setPreferredSize(dateYearSize);
-            cfmPanel.add(arrivalYField2, f);
+            arrivalField2.setMinimumSize(labelSize);
+            arrivalField2.setPreferredSize(labelSize);
+            cfmPanel.add(arrivalField2, f);
 
             JLabel departureLabel2 = new JLabel("Date of departure: ");
             f.gridx = 0;
@@ -853,26 +1079,14 @@ public class Student extends User{
             departureLabel2.setPreferredSize(labelSize);
             cfmPanel.add(departureLabel2, f);
 
-            JLabel departureDField2 = new JLabel(inputDepDDate);
+            JLabel departureField2 = new JLabel(inputDepDDate + "-" + inputDepMDate + "-" + inputDepYDate);
             f.gridx = 1;
             f.gridy = 5;    
-            departureDField2.setMinimumSize(dateSize);
-            departureDField2.setPreferredSize(dateSize);
-            cfmPanel.add(departureDField2, f);
+            departureField2.setMinimumSize(labelSize);
+            departureField2.setPreferredSize(labelSize);
+            cfmPanel.add(departureField2, f);
 
-            JLabel departureMField2 = new JLabel(inputDepMDate);
-            f.gridx = 2;
-            f.gridy = 5;    
-            departureMField2.setMinimumSize(dateSize);
-            departureMField2.setPreferredSize(dateSize);
-            cfmPanel.add(departureMField2, f);
-
-            JLabel departureYField2 = new JLabel(inputDepYDate);
-            f.gridx = 3;
-            f.gridy = 5;    
-            departureYField2.setMinimumSize(dateYearSize);
-            departureYField2.setPreferredSize(dateYearSize);
-            cfmPanel.add(departureYField2, f);
+            
 
             JLabel specialLabel2 = new JLabel("Additional Request: ");
             f.gridx = 0;
@@ -888,9 +1102,39 @@ public class Student extends User{
             specialField2.setPreferredSize(labelSize);
             cfmPanel.add(specialField2, f);
 
+            JLabel priceLabel = new JLabel("Price: ");
+            f.gridx = 0;
+            f.gridy = 7;    
+            priceLabel.setMinimumSize(labelSize);
+            priceLabel.setPreferredSize(labelSize);
+            cfmPanel.add(priceLabel, f);
+
+            JLabel priceLabel2 = new JLabel();
+            f.gridx = 1;
+            f.gridy = 7; 
+            switch (selectedRoomText) {
+                case "Large":
+                    priceLabel2.setText("1200");
+                    break;
+                case "Medium":
+                    priceLabel2.setText("800");
+                    break;
+                case "Small":
+                    priceLabel2.setText("500");
+                    break;
+                default:
+                    System.out.println("selected room error");
+                    break;
+            }
+
+            priceLabel2.setMinimumSize(labelSize);
+            priceLabel2.setPreferredSize(labelSize);
+            cfmPanel.add(priceLabel2, f);
+
+
             JButton cancelButton = new JButton("Cancel", null);
             f.gridx = 0;
-            f.gridy = 7; 
+            f.gridy = 8; 
             cancelButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -900,36 +1144,52 @@ public class Student extends User{
             });
             cfmPanel.add(cancelButton, f);
 
-            JButton cfmButton = new JButton("Confirm", null);
+            JButton cfmButton = new JButton("Pay Now", null);
             f.gridx = 1;
-            f.gridy = 7; 
+            f.gridy = 8; 
             cfmButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    Instant arr = arrDateParsed.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+                    Instant dep = DepDateParsed.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+
+                    Application application = new Application();
+
+                
+                    application.setRoomType(selectedRoomText);
+                    application.setOccupant(getUsername());
+                    application.setArrivalDate(java.util.Date.from(arr)); //can only accept 'date'
+                    application.setDepartureDate(java.util.Date.from(dep));
+                    application.setStatus("AVAILABLE");
+                    application.setPaidStatus("PENDING");
+                    application.setPrice(priceLabel2.getText());
+
+                    application.saveApplication();
                     
+
+
+
+                    Window window = SwingUtilities.getWindowAncestor(cfmPanel);
+                    window.dispose();
+                    //id hv to load application first rite but how to pass application id when it's not an input by 'student'
+
+
+                    //do i revalidate to refresh the page everytime the button is clicked
+
                 }
             });
             cfmPanel.add(cfmButton, f);
 
             return(cfmDialog);
         }
+
+        
     }
         
-
         
+
+    
             
-            
-
-        
-
-        
-
-        private void saveApplication(){
-            FileHandler fileHandler = new FileHandler("myFile.txt");
-        Map<String, ArrayList<String>> myData = new HashMap<>();
-        // add data to myData map
-        fileHandler.save(myData);
-        }
 
     }
 

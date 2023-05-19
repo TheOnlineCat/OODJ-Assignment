@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 public class Application {
@@ -13,15 +14,26 @@ public class Application {
         "Application ID",
         "Room Type",
         "Occupied",
-        "Date applied",
-        "Status",
+        "Arrival",
+        "Departure",
+        "Apply Status",
+        "Payment Status",
+        "Price"
+
     };
+
+
+
     
     private String applicationID;
     private String roomType;
     private String username;
     private String status;
-    private Date date;
+    private String paidStatus;
+    private Date arrivalDate;
+    private Date departureDate;
+    private String price;
+
 
 
 
@@ -33,15 +45,35 @@ public class Application {
         return roomType;
     }
 
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
+    }
+
     public String getUsername() {
         return username;
     }
 
-    public String getDate() {
+
+    public String getArrivalDate() {
         DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy");
-        String strDate = dateFormat.format(this.date);
+        String strDate = dateFormat.format(this.arrivalDate);
         return(strDate);
     }
+
+    public void setArrivalDate(Date arrivalDate) {
+        this.arrivalDate = arrivalDate;
+    }
+
+    public String getDepartureDate() {
+        DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy");
+        String strDate2 = dateFormat.format(this.departureDate);
+        return(strDate2);
+    }
+
+    public void setDepartureDate(Date departureDate) {
+        this.departureDate = departureDate;
+    }
+
 
     public String getStatus() {
         return status;
@@ -51,11 +83,35 @@ public class Application {
         this.status = status;
     }
 
-    
+    public String getPaidStatus() {
+        return paidStatus;
+    }
+
+    public void setPaidStatus(String paidStatus) {
+        this.paidStatus = paidStatus;
+    }
+
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+
+    public Application(){
+        this.applicationID = GetHighestNullID();
+    }
+
 
     public Application(String applicationID){
         if (loadApplication(applicationID));
             this.applicationID = applicationID;
+    }
+
+    public void setOccupant(String username){
+        this.username = username;
     }
 
     private boolean loadApplication(String applicationID) {
@@ -67,13 +123,21 @@ public class Application {
                 username = applicationDict.get(key).get(1);
                 
                 try {
-                    date = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(2));
+                    arrivalDate = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(2));
                 } catch (ParseException e) {
                     System.out.println("Unable to parse date");
-                    date = new Date(0);
+                    arrivalDate = new Date(0);
+                }
+                try {
+                    arrivalDate = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(3));
+                } catch (ParseException e) {
+                    System.out.println("Unable to parse date");
+                    arrivalDate = new Date(0);
                 }
 
-                status = applicationDict.get(key).get(3);
+
+                status = applicationDict.get(key).get(4);
+                paidStatus = applicationDict.get(key).get(5);
 
                 return(true);
             }
@@ -82,16 +146,26 @@ public class Application {
     }
 
     public void saveApplication(){
-        List<String> newInfo = Arrays.asList(roomType, username, this.getDate(), status);
+        List<String> newInfo = Arrays.asList(roomType, username, this.getArrivalDate(), this.getDepartureDate(), status, paidStatus, price);
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        for(String key : applicationDict.keySet()) {
-            if(applicationID.equals(key)) {
-                applicationDict.put(key, new ArrayList<String>(newInfo));
-                fileHandler.save(applicationDict);
-                return;
-            }
-        }
+        applicationDict.put(applicationID, new ArrayList<String>(newInfo));
+        fileHandler.save(applicationDict);
+        return;
+        // for(String key : applicationDict.keySet()) {
+        //     if(applicationID.equals(key)) {
+                
+        //     }
+        // }
+    }
+
+    public static String GetHighestNullID(){
+        FileHandler fileHandler = new FileHandler("Applications.txt");
+        Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        String highestID = Collections.max(applicationDict.keySet());
+        int id = Integer.parseInt(highestID.substring(3)) + 1;
+        String nullID = highestID.substring(0, 3) + String.format("%03d", id);
+        return nullID;
     }
 }

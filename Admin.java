@@ -576,7 +576,8 @@ public class Admin extends User {
                     applicationId, 
                     application.getRoomType(), 
                     application.getUsername(), 
-                    application.getDate()
+                    application.getArrivalDate(),
+                    application.getDepartureDate()
                 };
                 ArrayList<String> applicationInfo = new ArrayList<String>(Arrays.asList(infoArray));
 
