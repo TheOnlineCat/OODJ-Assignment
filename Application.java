@@ -129,15 +129,16 @@ public class Application {
                     arrivalDate = new Date(0);
                 }
                 try {
-                    arrivalDate = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(3));
+                    departureDate = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(3));
                 } catch (ParseException e) {
                     System.out.println("Unable to parse date");
-                    arrivalDate = new Date(0);
+                    departureDate = new Date(0);
                 }
 
 
                 status = applicationDict.get(key).get(4);
                 paidStatus = applicationDict.get(key).get(5);
+                price = applicationDict.get(key).get(6);
 
                 return(true);
             }
