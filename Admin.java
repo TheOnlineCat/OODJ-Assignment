@@ -1,21 +1,6 @@
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -27,26 +12,23 @@ public class Admin extends User {
         super(userDetails);
     }
 
+    private Map<String, ArrayList<String>> getInfo(String file){
+        Map<String, ArrayList<String>> info;
+        FileHandler fileHandler = new FileHandler(file);
+        info = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        return(info);
+    }
 
     private Map<String, ArrayList<String>> getHostels(){
-        Map<String, ArrayList<String>> hostels;
-        FileHandler fileHandler = new FileHandler("Hostels.txt");
-        hostels = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        return(hostels);
+        return getInfo("Hostels.txt");
     }
 
     private Map<String, ArrayList<String>> getUsers(){
-        Map<String, ArrayList<String>> users;
-        FileHandler fileHandler = new FileHandler("Users.txt");
-        users = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        return(users);
+        return getInfo("Users.txt");
     }
 
     private Map<String, ArrayList<String>> getApplications() {
-        Map<String, ArrayList<String>> applications;
-        FileHandler fileHandler = new FileHandler("Applications.txt");
-        applications = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        return(applications);
+        return getInfo("Applications.txt");
     }
 
     public class AdminPanel extends JPanel{
@@ -65,6 +47,17 @@ public class Admin extends User {
             hostelScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
 
             hostelPanel.add(hostelScrollPane);
+
+            Image sizedImage = Gui.CreateIcon("Resources\\plus.png", 24, 24);
+            FloatingButton floatButton = new FloatingButton(sizedImage, 30) {
+                @Override
+                public void ButtonClicked() {
+                    JDialog addDialog = new AddHostelDialog();
+                    addDialog.setVisible(true);
+                }
+            };
+            JLayer<Component> HostelLayer = new JLayer<Component>(hostelPanel, floatButton);
+
             
             JPanel studentsPanel = new JPanel(); 
             
@@ -85,11 +78,17 @@ public class Admin extends User {
             loadApplication(applicationListPanel);
 
 
-
             JScrollPane applicationScrollPane = new JScrollPane(applicationListPanel);
             applicationScrollPane.setPreferredSize(new Dimension(480,260));
             applicationScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
             applicationScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+            applicationPanel.add(applicationScrollPane);
+
+    
+    
+            mainPanel.setMinimumSize(new Dimension(500,280));
+            mainPanel.setPreferredSize(new Dimension(500,280));
 
             JTextField searchField = new JTextField(30);
             searchField.addActionListener(new ActionListener() {
@@ -101,13 +100,7 @@ public class Admin extends User {
             });
             this.add(searchField);
 
-            applicationPanel.add(applicationScrollPane);
-
-    
-    
-            mainPanel.setMinimumSize(new Dimension(500,280));
-            mainPanel.setPreferredSize(new Dimension(500,280));
-            mainPanel.addTab("Hostel", hostelPanel);
+            mainPanel.addTab("Hostel", HostelLayer);
             mainPanel.addTab("Students", studentsPanel);
             mainPanel.addTab("Applications", applicationPanel);
             
@@ -125,7 +118,6 @@ public class Admin extends User {
                         JPanel labelPanel = (JPanel)recordPanel.getComponent(0);
                         for(Component label : labelPanel.getComponents()) {
                             JLabel detail = (JLabel)label;
-                            //if (!username.getName().equals("2")) continue;
                             if (detail.getText().toUpperCase().contains(search.toUpperCase())) {
                                 record.setVisible(true);
                                 break;
@@ -150,37 +142,18 @@ public class Admin extends User {
                 hostelButtonPanel.addMouseListener(new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        HostelDialog hostelDialog = new HostelDialog(panelRef, key);
-                        hostelDialog.setVisible(true);
-                        hostelDialog.addWindowListener(new WindowListener() {
-
+                        HostelDialog hostelDialog = new HostelDialog(key) {
                             @Override
-                            public void windowOpened(WindowEvent e) {}
-
-                            @Override
-                            public void windowClosing(WindowEvent e) {
+                            public void Close() {
                                 panelRef.removeAll();
                                 loadHostels(panelRef);
                                 panelRef.validate();
                                 panelRef.repaint();
+                                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+                                return;
                             }
-
-                            @Override
-                            public void windowClosed(WindowEvent e) {}
-
-                            @Override
-                            public void windowIconified(WindowEvent e) {}
-
-                            @Override
-                            public void windowDeiconified(WindowEvent e) {}
-
-                            @Override
-                            public void windowActivated(WindowEvent e) {}
-
-                            @Override
-                            public void windowDeactivated(WindowEvent e) {}
-                            
-                        });
+                        };
+                        hostelDialog.setVisible(true);
                     }
 
                     @Override
@@ -221,7 +194,6 @@ public class Admin extends User {
             for(String key : records.keySet()) {
                 Student student = new Student(key);
                 ArrayList<String> studentInfo = student.getInfo();
-                System.out.println(studentInfo);
                 String[] details =  {
                     key, //username
                     student.getName() //name
@@ -230,7 +202,18 @@ public class Admin extends User {
                 studentButtonPanel.addMouseListener(new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        StudentDialog studentDialog = new StudentDialog(panelRef, key, studentInfo);
+                        StudentDialog studentDialog = new StudentDialog(key, studentInfo) {
+                            @Override
+                            public void CheckApplication(String username) {
+                                Container c = panelRef.getParent();
+                                while(c != null && c.getClass() != JTabbedPane.class)
+                                    c = c.getParent();
+                                JTabbedPane tabbedPane = (JTabbedPane)c;
+                                tabbedPane.setSelectedIndex(2);
+                                JPanel applicantPanel = (JPanel)tabbedPane.getSelectedComponent();
+                                filterPanel(applicantPanel, username);
+                            }
+                        };
                         studentDialog.setVisible(true);
                     }
         
@@ -275,34 +258,17 @@ public class Admin extends User {
                 applicationButtonPanel.addMouseListener(new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        ApplicationDialog applicationDialog = new ApplicationDialog(key);
-                        applicationDialog.addWindowListener(new WindowListener() {
+                        ApplicationDialog applicationDialog = new ApplicationDialog(key) {
                             @Override
-                            public void windowClosing(WindowEvent e) {
+                            public void Close() {
                                 panelRef.removeAll();
                                 loadApplication(panelRef);
                                 panelRef.validate();
                                 panelRef.repaint();
+                                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+                                return;
                             }
-                            
-                            @Override
-                            public void windowOpened(WindowEvent e) {}
-
-                            @Override
-                            public void windowClosed(WindowEvent e) {}
-
-                            @Override
-                            public void windowIconified(WindowEvent e) {}
-
-                            @Override
-                            public void windowDeiconified(WindowEvent e) {}
-
-                            @Override
-                            public void windowActivated(WindowEvent e) {}
-
-                            @Override
-                            public void windowDeactivated(WindowEvent e) {}
-                        });
+                        };
                     }
         
                     @Override
@@ -331,6 +297,30 @@ public class Admin extends User {
             }
         }
 
+        private class AddHostelDialog extends DialogForm {
+            
+            AddHostelDialog() {
+
+            }
+
+            @Override
+            void CreateForm(JPanel dialogPanel) {
+                setLocationRelativeTo(null);
+            }
+
+            @Override
+            void SetDialogProperties() {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'SetDialogProperties'");
+            }
+
+            @Override
+            void DisplayDialog() {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'DisplayDialog'");
+            }
+        }
+
         private class HostelDialog extends JDialog{
             Hostel hostel;
 
@@ -345,6 +335,7 @@ public class Admin extends User {
             JPanel buttonPanel;
             JButton saveButton;
             JButton closeButton;
+            JButton deleteButton;
 
             ButtonGroup radioGroup;
 
@@ -352,7 +343,7 @@ public class Admin extends User {
 
             boolean valid = true;
 
-            public HostelDialog(JPanel parentPanel, String hostelId) {
+            public HostelDialog(String hostelId) {
 
                 hostel = new Hostel(hostelId);
 
@@ -455,7 +446,8 @@ public class Admin extends User {
                 saveButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        close();
+                        if(save())
+                            Close();
                     }
                 });
                 buttonPanel.add(saveButton, c);
@@ -470,6 +462,17 @@ public class Admin extends User {
                 });
                 buttonPanel.add(closeButton, c);
 
+                c.gridx = 2;
+                deleteButton = new JButton("Delete");
+                deleteButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        hostel.deleteHostel();
+                        Close();
+                    }
+                });
+                buttonPanel.add(deleteButton, c);
+
                 panel.add(buttonPanel, BorderLayout.SOUTH);
 
                 this.add(panel);
@@ -479,78 +482,92 @@ public class Admin extends User {
                 this.setLocationRelativeTo(null);
             }
 
-            private void close() {
+            private boolean save() {
                 for(Component c : hostelFormPanel.getComponents()) {
-                    System.out.println(c.getClass());
                     if (c instanceof JTextField) {
                         JTextField textField = (JTextField)c;
                         if (textField.getText().isEmpty()) {
                             JOptionPane.showMessageDialog(this, "Invalid fields", "Error", JOptionPane.ERROR_MESSAGE);
-                            return;
+                            return(false);
                         }
                     }
                 }
                 if(!valid) {
                     JOptionPane.showMessageDialog(this, "Invalid fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    return false;
                 }
 
                 hostel.setRoomType(typeTField.getText());
                 hostel.setPrice(Integer.parseInt(priceTField.getText()));
                 hostel.setStatus(radioGroup.getSelection().getActionCommand());
                 hostel.saveHostel();
+                return true;
+            }
 
+            public void Close() {
                 dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
             }
         }
 
-        private class StudentDialog extends JDialog{
+        private class StudentDialog extends DialogForm{
             JPanel panel;
             JPanel studentDetailsPanel;
             JButton historyButton;
-            public StudentDialog (JPanel parentPanel, String username, ArrayList<String> studentInfo) {        
+            public StudentDialog (String username, ArrayList<String> studentInfo) {    
+                
+                infoArray = studentInfo.toArray(new String[studentInfo.size()]);
+
+                labelArray = Student.DETAILS;
+                
                 panel = new JPanel();
                 panel.setLayout(new BorderLayout());
                 panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-                studentDetailsPanel = new JPanel();
-                studentDetailsPanel.setLayout(new GridBagLayout());
-                studentDetailsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                
-                Gui.displayLabelGrid(studentDetailsPanel, studentInfo, Student.DETAILS, 0);
-
-                panel.add(studentDetailsPanel);
+                CreateForm(panel);
         
                 historyButton = new JButton("Check Applications");
                 historyButton.setSize(new Dimension(80, 30));
                 historyButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        Container c = parentPanel.getParent();
-                        while(c != null && c.getClass() != JTabbedPane.class)
-                            c = c.getParent();
-                        JTabbedPane tabbedPane = (JTabbedPane)c;
-                        tabbedPane.setSelectedIndex(2);
-                        JPanel applicantPanel = (JPanel)tabbedPane.getSelectedComponent();
-                        filterPanel(applicantPanel, username);
-                        close();
+                        CheckApplication(username);
+                        Close();
                     }
                 });
 
                 panel.add(historyButton, BorderLayout.SOUTH);
 
                 this.add(panel);
-        
+            }
+
+            @Override
+            void CreateForm(JPanel dialogPanel) {
+                studentDetailsPanel = new JPanel();
+                studentDetailsPanel.setLayout(new GridBagLayout());
+                studentDetailsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                Gui.displayLabelGrid(studentDetailsPanel, infoArray, labelArray, 0);
+                dialogPanel.add(studentDetailsPanel);
+            }
+
+            public void Close() {
+                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            }
+
+            public void CheckApplication(String username) {}
+
+            @Override
+            void SetDialogProperties() {
                 this.setSize(300, 300);;
                 this.setLocationRelativeTo(null);
             }
 
-            private void close() {
-                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            @Override
+            void DisplayDialog() {
+                this.setVisible(true);
             }
         }
 
-        private class ApplicationDialog extends JDialog {
+        private class ApplicationDialog extends DialogForm{
             GridBagConstraints c;
     
             Application application;
@@ -564,25 +581,23 @@ public class Admin extends User {
             
     
             public ApplicationDialog(String applicationId) {
-    
-                application = new Application(applicationId);
-    
-                applicationPanel = new JPanel();
 
-                applicationDetailPanel = new JPanel();
-                applicationDetailPanel.setLayout(new GridBagLayout());
+                application = new Application(applicationId);
                 
-                String[] infoArray = {
+                infoArray = new String[] {
                     applicationId, 
                     application.getRoomType(), 
                     application.getUsername(), 
                     application.getArrivalDate(),
                     application.getDepartureDate()
                 };
-                ArrayList<String> applicationInfo = new ArrayList<String>(Arrays.asList(infoArray));
 
-                Gui.displayLabelGrid(applicationDetailPanel, applicationInfo, Application.DETAILS, 0);
-                applicationPanel.add(applicationDetailPanel);
+                labelArray = Application.DETAILS;
+    
+
+                applicationPanel = new JPanel();
+
+                CreateForm(applicationPanel);
     
                 buttonPanel = new JPanel();
                 buttonPanel.setLayout(new GridBagLayout());
@@ -623,15 +638,33 @@ public class Admin extends User {
                 applicationPanel.add(buttonPanel);
     
                 this.add(applicationPanel);
+                SetDialogProperties();
+                DisplayDialog();
+            }
+    
+            public void Close() {
+                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            }
+
+            @Override
+            void CreateForm(JPanel dialogPanel) {
+                applicationDetailPanel = new JPanel();
+                applicationDetailPanel.setLayout(new GridBagLayout());
+                Gui.displayLabelGrid(applicationDetailPanel, infoArray, labelArray, 0);
+                dialogPanel.add(applicationDetailPanel);
+            }
+
+            @Override
+            void SetDialogProperties() {
                 this.setTitle("Application Details");
                 this.validate();
                 this.setSize(300, 300);;
                 this.setLocationRelativeTo(null);
-                this.setVisible(true);
             }
-    
-            private void Close() {
-                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+
+            @Override
+            void DisplayDialog() {
+                this.setVisible(true);
             }
         }
     }

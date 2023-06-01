@@ -145,6 +145,21 @@ public class Application {
         return(false);
     }
 
+    public void deleteApplication () {
+        FileHandler fileHandler = new FileHandler("Applications.txt");
+        Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        applicationDict.remove(applicationID);
+        fileHandler.save(applicationDict);
+    }
+
+    public static void deleteApplication (String appID) {
+        FileHandler fileHandler = new FileHandler("Applications.txt");
+        Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        applicationDict.remove(appID);
+        fileHandler.save(applicationDict);
+    }
+
+
     public void saveApplication(){
         List<String> newInfo = Arrays.asList(roomType, username, this.getArrivalDate(), this.getDepartureDate(), status, paidStatus, price);
 

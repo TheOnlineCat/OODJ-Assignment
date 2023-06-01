@@ -59,6 +59,20 @@ public class Hostel {
         return(false);
     }
 
+    public void deleteHostel () {
+        FileHandler fileHandler = new FileHandler("Hostels.txt");
+        Map<String, ArrayList<String>> HostelDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        HostelDict.remove(this.hostelID);
+        fileHandler.save(HostelDict);
+    }
+
+    public static void deleteHostel (String hostelID) {
+        FileHandler fileHandler = new FileHandler("Hostels.txt");
+        Map<String, ArrayList<String>> HostelDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        HostelDict.remove(hostelID);
+        fileHandler.save(HostelDict);
+    }
+
     public void saveHostel(){
         List<String> newInfo = Arrays.asList(roomType, Integer.toString(price), status);
 

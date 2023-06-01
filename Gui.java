@@ -5,9 +5,6 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
@@ -18,8 +15,6 @@ public class Gui extends JFrame{
 
     private JPanel headerPanel;
     private JLabel titleLabel;
-    private JButton backButton;
-    private JComboBox<String> menuBox;
 
     public Gui(String Title) {
         this.setTitle(Title);
@@ -42,6 +37,7 @@ public class Gui extends JFrame{
         this.setLocationRelativeTo(null);
         this.setVisible(true);  
     }
+
     public static JPanel createRecordButton(String[] details) {
         int rowSize = 460;
         JPanel recordPanel = new JPanel();
@@ -70,11 +66,11 @@ public class Gui extends JFrame{
         return(recordPanel);
     }
 
-    public static void displayLabelGrid(JPanel panelRef, ArrayList<String> info, String[] labels, int start) {
+    public static void displayLabelGrid(JPanel panelRef, String[] info, String[] labels, int start) {
         Dimension labelSize = new Dimension(0, 20);
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 1;
-        for(int idx = start; idx < info.size(); idx++) {
+        for(int idx = start; idx < info.length; idx++) {
             c.gridy = idx;
             c.gridx = 0;
             c.weightx = 1;
@@ -86,7 +82,7 @@ public class Gui extends JFrame{
             c.gridx = 1;
             c.weightx = 4;
             labelSize.width = 130;
-            JLabel rightLabel = new JLabel(info.get(idx), SwingConstants.RIGHT);
+            JLabel rightLabel = new JLabel(info[idx], SwingConstants.RIGHT);
             rightLabel.setPreferredSize(labelSize);
             panelRef.add(rightLabel, c);
 
@@ -134,47 +130,19 @@ public class Gui extends JFrame{
             panelRef.validate();
         } 
     }
-    // private void SwitchWindow(Panel window){
-    //     //Create Button
-    //     backButton = new JButton();
-    //     if (FileHandler.Exists("Resources\\menu.png")) {
-    //         this.setButtonIcon(backButton, new ImageIcon("Resources\\menu.png"), 30, 30); 
-    //     }
-        
-    //     backButton.addActionListener(new ActionListener() {
-    //         public void actionPerformed(ActionEvent e) {
-    //             menuBox.setVisible(!menuBox.isVisible());
-    //         }
-    //     });
-    //     headerPanel.add(backButton, BorderLayout.WEST);
 
-
-    //     window.setVisible(true);
-    //     this.dispose();
-    // }
-
-    public static JButton setButtonIcon(JButton button, ImageIcon icon, int width, int height) {
+    public static Image CreateIcon(String path, int width, int height) {
+        ImageIcon icon = new ImageIcon(path);
         Image sizedimg = icon.getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
-        icon = new ImageIcon(sizedimg);
-        button.setIcon(icon);
-        button.setBorder(BorderFactory.createEmptyBorder());
-        button.setContentAreaFilled(false);
-        return(button);
+        return(sizedimg);
     }
 
-    // private JComboBox<String> createMenu(String[] choices) {
-
-    //     menuBox = new JComboBox<String>(choices);
-    //     menuBox.addActionListener(new ActionListener() {
-    //         @Override
-    //         public void actionPerformed(ActionEvent e) {
-    //             //Gui newWindow = new Gui("HostelApplication");
-    //             //SwitchWindow();
-    //             System.out.println("switch");
-    //         }
-    //     });
-
-    //     menuBox.setVisible(false);
-    //     return(menuBox);
+    // public static JButton setButtonIcon(JButton button, ImageIcon icon, int width, int height) {
+    //     Image sizedimg = icon.getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+    //     icon = new ImageIcon(sizedimg);
+    //     button.setIcon(icon);
+    //     button.setBorder(BorderFactory.createEmptyBorder());
+    //     button.setContentAreaFilled(false);
+    //     return(button);
     // }
 }
