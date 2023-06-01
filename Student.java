@@ -8,27 +8,21 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.ScrollPane;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -159,14 +153,11 @@ public class Student extends User{
 
         private JPanel payment(){
             
-            FileHandler fileHandler = new FileHandler("Applications.txt");
-            payment = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-
             JPanel paymentPanel = new JPanel();
 
             JPanel paymentListPanel = new JPanel();
             paymentListPanel.setLayout(new BoxLayout(paymentListPanel, BoxLayout.Y_AXIS));
-            loadPayment(payment, paymentListPanel);
+            loadPayment(paymentListPanel);
 
             
 
@@ -178,12 +169,15 @@ public class Student extends User{
             return paymentPanel;
         }
 
-        private void loadPayment(Map<String, ArrayList<String>> payment, JPanel panelRef){
-            String[] titles = {"Username", "Application ID", "Apply Status", "Payment Status", "Price"};
+        private void loadPayment(JPanel panelRef){
+            FileHandler fileHandler = new FileHandler("Applications.txt");
+            payment = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
 
             String currentUser = getUsername();
+            
             for (String key : payment.keySet()) {
                 ArrayList<String> details = payment.get(key);
+
                 if (details.get(1).equals(currentUser)) {
                     String[] paymentData = {
                         key, // hostel id
@@ -192,66 +186,63 @@ public class Student extends User{
                         details.get(4), // request status
                         details.get(5)}; // payment status
 
-                    ArrayList<String> paymentDetails = new ArrayList<String>();
-                    paymentDetails.add(getUsername());      
-                    paymentDetails.add(details.get(0));
-                    paymentDetails.add(details.get(1));
-                    paymentDetails.add(details.get(5));
-                    paymentDetails.add(details.get(6));
-
-
-
-
-
+                    String[] paymentDetails = {
+                        details.get(2),   
+                        key,
+                        details.get(5),
+                        details.get(6)
+                    };
+        
+                    Application application = new Application(key);
                     JPanel paymentButtonPanel = Gui.createRecordButton(paymentData);
-                    details.add(0, key); //index=0 is the username, then the rest is the subsequent data
-                    paymentButtonPanel.addMouseListener(new MouseListener() {
+                    paymentButtonPanel.addMouseListener(new MouseListener() {   
                         @Override
                         public void mouseClicked(MouseEvent e) {
-                            JDialog paymentDialog = new JDialog();
-                            JPanel paymentDialogPanel = new JPanel();
-                            System.out.println(details.get(5));
-                            Gui.displayLabelGrid(paymentDialogPanel, details, Application.DETAILS, 0); //ref, content, headers, start index
+                            ArrayList<String> tempDetails = new ArrayList<String>();
+                            tempDetails.add(key);
+                            tempDetails.addAll(details);
                             
-                            if (details.get(6).equals("UNPAID")){
-                                JButton payButton = new JButton("Make Payment");
-                                payButton.addActionListener(new ActionListener() {
-                                    @Override
-                                    public void actionPerformed(ActionEvent e) {
-                                    JDialog paymentCheckDialog = new JDialog();
-                                    JPanel paymentCheckDialogPanel = new JPanel();
-                                    Gui.displayLabelGrid(paymentCheckDialogPanel, paymentDetails, titles, 0); //only make it so that display label grid shows payment details
-                                    
-
-                                    JButton cfmPayButton = new JButton("Confirm Payment");
-                                    payButton.addActionListener(new ActionListener() {
+                            JDialog payDialog = new PaymentDialog(tempDetails) {
+                                @Override
+                                public void CreateConfirmation() {
+                                    System.out.println();
+                                    JDialog payConfirmDialog = new PaymentDialog(paymentDetails) {
                                         @Override
-                                        public void actionPerformed(ActionEvent e) {
-                                            FileHandler fileHandler = new FileHandler("Applications.txt");
-                                            paid = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+                                        public void CreateDialog() {
+                                            JPanel paymentCheckDialogPanel = new JPanel();
+                                            CreateForm(paymentCheckDialogPanel);
+                                            JButton cfmPayButton = new JButton("Confirm Payment");
+                                            cfmPayButton.addActionListener(new ActionListener() {
+                                                @Override
+                                                public void actionPerformed(ActionEvent e) {
+                                                    FileHandler fileHandler = new FileHandler("Applications.txt");
+                                                    paid = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+                                                    application.setPaidStatus("PAID");
+                                                    application.saveApplication();
+
+                                                    panelRef.removeAll();
+                                                    loadPayment(panelRef);
+                                                    panelRef.validate();
+                                                    panelRef.repaint();
+
+                                                    Close();
+                                                }
+                                            });
+                                            paymentCheckDialogPanel.add(cfmPayButton);
+                                            add(paymentCheckDialogPanel);
+
                                             
-                                            
+
+                                            //DisplayDialog();
                                         }
-                                    });
-                                    paymentCheckDialogPanel.setPreferredSize(new Dimension(300, 200));
-                                    paymentCheckDialogPanel.setMinimumSize(new Dimension(300, 200));
-                                    paymentCheckDialog.add(paymentCheckDialogPanel);
-                                    paymentCheckDialog.setPreferredSize(new Dimension(300, 280));
-                                    paymentCheckDialog.setMinimumSize(new Dimension(300, 280));
-                                    paymentCheckDialog.setLocationRelativeTo(null);
-                                    paymentCheckDialog.setVisible(true);
-                                    }
-                                });
-                                paymentDialogPanel.add(payButton);
-                            }
-                            
-                            
-                            paymentDialog.add(paymentDialogPanel);
-                            paymentDialog.setPreferredSize(new Dimension(300, 280));
-                            paymentDialog.setMinimumSize(new Dimension(300, 280));
-                            paymentDialog.setLocationRelativeTo(null);
-                            paymentDialog.setVisible(true);
-                            paymentDialog.setResizable(false);
+                                        @Override
+                                        void CreateForm(JPanel dialogPanel) {
+                                            //only make it so that display label grid shows payment details
+                                            Gui.displayLabelGrid(dialogPanel, infoArray, labelArray, 0); 
+                                        }
+                                    };
+                                }
+                            };
                         }
 
                         @Override
@@ -283,6 +274,67 @@ public class Student extends User{
            
         }
 
+        private class PaymentDialog extends DialogForm{
+            PaymentDialog(ArrayList<String> details){
+                infoArray = details.toArray(new String[details.size()]);
+                labelArray = Application.DETAILS;
+                CreateDialog();
+                SetDialogProperties();
+                DisplayDialog();
+            }
+
+            PaymentDialog(String[] paymentDetails){
+                infoArray = paymentDetails;
+                labelArray = new String[] {"Username", "Application ID", "Payment Status", "Price"};
+                CreateDialog();
+                SetDialogProperties();
+                DisplayDialog();
+            }
+
+            public void Close(){
+                dispose();
+            }
+
+            public void CreateDialog() {
+                JPanel paymentDialogPanel = new JPanel();
+                CreateForm(paymentDialogPanel);
+                if (infoArray[6].equals("UNPAID")){
+                    JButton payButton = new JButton("Make Payment");
+                    payButton.addActionListener(new ActionListener() {
+                        @Override   
+                        public void actionPerformed(ActionEvent e) {
+                            CreateConfirmation();
+                            Close();
+                        }
+                    });
+                    paymentDialogPanel.add(payButton);
+                }
+                //DisplayDialog(); 
+                add(paymentDialogPanel);
+            }
+
+            public void CreateConfirmation() { //abstract class to create dialog on makepayment button (clicked)
+
+            }
+
+            @Override
+            void CreateForm(JPanel dialogPanel) {
+                Gui.displayLabelGrid(dialogPanel, infoArray, labelArray, 0); //ref, content, headers, start index    
+            }
+            @Override
+            void SetDialogProperties() {
+                setPreferredSize(new Dimension(300, 280));
+                setMinimumSize(new Dimension(300, 280));
+                setLocationRelativeTo(null);
+                setResizable(false);
+            }
+            @Override
+            void DisplayDialog() {
+                setVisible(true);
+            }
+        
+        }
+
         private JPanel appHistory(){
             FileHandler fileHandler = new FileHandler("Applications.txt");
             history = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
@@ -300,9 +352,40 @@ public class Student extends User{
 
             return historyPanel;
         }
+
+
+       private class HistoryDialog extends DialogForm{
+            HistoryDialog(String[] info){
+                infoArray = info;
+                labelArray = Application.DETAILS;
+                JPanel dialogPanel = new JPanel();
+                add(dialogPanel);
+                CreateForm(dialogPanel);
+                SetDialogProperties();
+                DisplayDialog();
+            }
+
+            @Override
+            void CreateForm(JPanel dialogPanel){
+                Gui.displayLabelGrid(dialogPanel, infoArray, labelArray, 0);
+                
+            }
+            @Override
+            void SetDialogProperties() {
+                setPreferredSize(new Dimension(300, 280));
+                setMinimumSize(new Dimension(300, 280));
+                setLocationRelativeTo(null);
+                setResizable(false);
+            }
+            @Override
+            void DisplayDialog() {
+                setVisible(true);
+            }
         
-        private void loadHistory(Map<String, ArrayList<String>> history, JPanel panelRef){
-            // model2.setRowCount(0); // Clear existing data in the table
+        }
+        
+        
+        private void loadHistory(Map<String, ArrayList<String>> history, JPanel panelRef) {
             String currentUser = getUsername();
             for (String key : history.keySet()) {
                 ArrayList<String> details = history.get(key);
@@ -312,20 +395,19 @@ public class Student extends User{
                         details.get(1), // username
                         details.get(2), // status
                         details.get(3), // payment status
-                        };
-
+                    };
+        
                     JPanel historyButtonPanel = Gui.createRecordButton(rowData);
-                    details.add(0, key); //index=0 is the username, then the rest is the subsequent data
+                    details.add(0, key); // index=0 is the username, then the rest is the subsequent data
+        
+                    // Convert ArrayList<String> to String[]
+                    String[] info = details.toArray(new String[0]);
+        
                     historyButtonPanel.addMouseListener(new MouseListener() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
-                            JDialog historyDialog = new JDialog();
-                            JPanel historyDialogPanel = new JPanel();
-                            Gui.displayLabelGrid(historyDialogPanel, details, Application.DETAILS, 0); //ref, content, headers, start index
-                            historyDialog.add(historyDialogPanel);
-                            historyDialog.setSize(300, 230);
-                            historyDialog.setLocationRelativeTo(null);
-                            historyDialog.setVisible(true);
+                            DialogForm historyDialog = new HistoryDialog(info) {
+                            };
                         }
 
                         @Override
@@ -350,12 +432,12 @@ public class Student extends User{
                             }
                         }
                     });
-
                     panelRef.add(historyButtonPanel);
                 }
             }
            
         }
+
 
         private JPanel availableRooms() {
             JPanel hostelPanel = new JPanel();
@@ -577,7 +659,7 @@ public class Student extends User{
             c.gridy = 4;
             formPanel.add(paxLabel, c);
 
-            String[] guestNum = {"1", "2", "3", "3+"}; //feature: 3+ cannot book small room
+            String[] guestNum = {"1", "2", "3", "3+"}; 
             paxField = new JComboBox<>(guestNum);
             //paxField.setMinimumSize(new Dimension(100,20));
             c.gridx = 1;
@@ -638,7 +720,6 @@ public class Student extends User{
             JLabel arrivalLabel = new JLabel("Date of arrival: ");
             arrivalLabel.setMinimumSize(labelSize);
             arrivalLabel.setPreferredSize(labelSize);
-            arrivalLabel.setBorder(BorderFactory.createLineBorder(Color.black));
             c.gridx = 0;
             c.gridy = 0;
             formPanel.add(arrivalLabel, c);
@@ -705,7 +786,6 @@ public class Student extends User{
             datePanel.add(arrivalYField, c);
             c.gridx = 1;
             formPanel.add(datePanel, c);
-            datePanel.setBorder(BorderFactory.createLineBorder(Color.black));
 
 
 
@@ -730,7 +810,6 @@ public class Student extends User{
             JLabel departureLabel = new JLabel("Date of departure: ");
             departureLabel.setMinimumSize(labelSize);
             departureLabel.setPreferredSize(labelSize);
-            departureLabel.setBorder(BorderFactory.createLineBorder(Color.black));
             c.gridx = 0;
             c.gridy = 1;
             formPanel.add(departureLabel, c);
@@ -814,7 +893,6 @@ public class Student extends User{
             JLabel specialLabel = new JLabel("Additional Request: ");
             specialLabel.setMinimumSize(labelSize);
             specialLabel.setPreferredSize(labelSize);
-            specialLabel.setBorder(BorderFactory.createLineBorder(Color.black));
             c.gridx = 0;
             c.gridy = 2;
             c.anchor = GridBagConstraints.NORTH; // set anchor to the top
