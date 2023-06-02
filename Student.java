@@ -83,7 +83,6 @@ public class Student extends User{
                 loadInfo(userDict.get(key));
             }
         }
-        String data = getMail() + "tes" ;
     }
 
     @Override
