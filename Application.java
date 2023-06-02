@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-public class Application {
+public class Application{
 
     public static final String[] DETAILS = {
         "Application ID",
         "Room Type",
-        "Occupied",
+        "Occupant",
         "Arrival",
         "Departure",
         "Apply Status",

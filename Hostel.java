@@ -1,6 +1,7 @@
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 public class Hostel {
@@ -35,6 +36,7 @@ public class Hostel {
     }
 
     public static final String[] DETAILS = {
+                                "Hostel ID",
                                 "Room Type",
                                 "Price",
                                 "Room Status"
@@ -84,4 +86,12 @@ public class Hostel {
         return;
     }
 
+    public static String GetHighestNullID(){
+        FileHandler fileHandler = new FileHandler("Hostels.txt");
+        Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
+        String highestID = Collections.max(applicationDict.keySet());
+        int id = Integer.parseInt(highestID.substring(1)) + 1;
+        String nullID = highestID.substring(0, 1) + String.format("%03d", id);
+        return nullID;
+    }
 }

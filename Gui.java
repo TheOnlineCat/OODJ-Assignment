@@ -67,7 +67,7 @@ public class Gui extends JFrame{
     }
 
     public static void displayLabelGrid(JPanel panelRef, String[] info, String[] labels, int start) {
-        Dimension labelSize = new Dimension(0, 20);
+        Dimension labelSize = new Dimension(panelRef.getWidth() / 2, 20);
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 1;
         for(int idx = start; idx < info.length; idx++) {
@@ -90,13 +90,13 @@ public class Gui extends JFrame{
         } 
     }
 
-    public static void displayFormGrid(JPanel panelRef, ArrayList<String> initialInfo, String[] labels, int start) {
+    public static void displayFormGrid(JPanel panelRef, String[] initialInfo, String[] labels, int start) {
         Dimension labelSize = new Dimension(90, 20);
         Dimension textFieldSize = new Dimension(150, 20);
 
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 1;
-        for(int idx = start; idx < initialInfo.size(); idx++) {
+        for(int idx = start; idx < initialInfo.length; idx++) {
             c.gridy = idx;
             c.gridx = 0;
             c.weightx = 1;
@@ -111,7 +111,8 @@ public class Gui extends JFrame{
 
             c.gridx = 1;
             c.weightx = 4;
-            JTextField rightField = new JTextField(initialInfo.get(idx));
+            JTextField rightField = new JTextField(initialInfo[idx]);
+            rightField.setName(labels[idx]);
             rightField.setPreferredSize(textFieldSize);
             rightField.setMinimumSize(textFieldSize);
             rightField.setMaximumSize(textFieldSize);
