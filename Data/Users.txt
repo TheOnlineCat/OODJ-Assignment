@@ -3,3 +3,4 @@ admin2;password;ADMIN;Jacob
 student;password;STUDENT;Yi Xing;MALE;20;Xing@mail.com
 HUAXUEN;password;STUDENT;David;MALE;20;David123@mail.com
 a;1;STUDENT;a;a;12;a
+b;1;STUDENT;b;b;12;b
