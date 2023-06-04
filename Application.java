@@ -1,6 +1,9 @@
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
@@ -30,8 +33,8 @@ public class Application implements Saveable{
     private String username;
     private String status;
     private String paidStatus;
-    private Date arrivalDate;
-    private Date departureDate;
+    private LocalDate arrivalDate;
+    private LocalDate departureDate;
     private String price;
 
 
@@ -55,22 +58,22 @@ public class Application implements Saveable{
 
 
     public String getArrivalDate() {
-        DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy");
-        String strDate = dateFormat.format(this.arrivalDate);
-        return(strDate);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String strDate = this.arrivalDate.format(formatter);
+        return strDate;
     }
 
-    public void setArrivalDate(Date arrivalDate) {
+    public void setArrivalDate(LocalDate arrivalDate) {
         this.arrivalDate = arrivalDate;
     }
 
     public String getDepartureDate() {
-        DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy");
-        String strDate2 = dateFormat.format(this.departureDate);
-        return(strDate2);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String strDate2 = this.departureDate.format(formatter);
+        return strDate2;
     }
 
-    public void setDepartureDate(Date departureDate) {
+    public void setDepartureDate(LocalDate departureDate) {
         this.departureDate = departureDate;
     }
 
@@ -119,29 +122,28 @@ public class Application implements Saveable{
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         for(String key : applicationDict.keySet()) {
-            if(applicationID.equals(key)) {
+            if (applicationID.equals(key)) {
                 roomType = applicationDict.get(key).get(0);
                 username = applicationDict.get(key).get(1);
-                
+    
                 try {
-                    arrivalDate = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(2));
-                } catch (ParseException e) {
+                    arrivalDate = LocalDate.parse(applicationDict.get(key).get(2), DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                } catch (DateTimeParseException e) {
                     System.out.println("Unable to parse date");
-                    arrivalDate = new Date(0);
+                    arrivalDate = LocalDate.MIN;
                 }
                 try {
-                    departureDate = new SimpleDateFormat("dd-mm-yyyy").parse(applicationDict.get(key).get(3));
-                } catch (ParseException e) {
+                    departureDate = LocalDate.parse(applicationDict.get(key).get(3), DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                } catch (DateTimeParseException e) {
                     System.out.println("Unable to parse date");
-                    departureDate = new Date(0);
+                    departureDate = LocalDate.MIN;
                 }
-
-
+    
                 status = applicationDict.get(key).get(4);
                 paidStatus = applicationDict.get(key).get(5);
                 price = applicationDict.get(key).get(6);
-
-                return(true);
+    
+                return true;
             }
         }
         return(false);
@@ -168,20 +170,16 @@ public class Application implements Saveable{
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        applicationDict.put(applicationID, new ArrayList<String>(newInfo));
+        applicationDict.put(GetHighestNullID(), new ArrayList<String>(newInfo));
         fileHandler.save(applicationDict);
         return;
-        // for(String key : applicationDict.keySet()) {
-        //     if(applicationID.equals(key)) {
-                
-        //     }
-        // }
     }
 
     public static String GetHighestNullID(){
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         String highestID = Collections.max(applicationDict.keySet());
+        System.out.println(highestID);
         int id = Integer.parseInt(highestID.substring(3)) + 1;
         String nullID = highestID.substring(0, 3) + String.format("%03d", id);
         return nullID;

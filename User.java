@@ -25,7 +25,6 @@ public class User {
     }
 
     public void loadInfo(ArrayList<String> data) {
-        //this.username = data.get(3);
         this.name = data.get(2);
     }
 

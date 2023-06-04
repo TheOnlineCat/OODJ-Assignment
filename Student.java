@@ -2,7 +2,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -15,25 +14,20 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
-//make it more object oriented (evv now is done in one method)
 public class Student extends User{ 
   
     private String gender;
@@ -114,15 +108,11 @@ public class Student extends User{
         return(studentMap);        
     }
 
-
-    
-    
-    //create confirmation methods, where i save all the updated data into the arraylist, 
-    //then overwrite the map with the new 'arraylist' (filehandler 'write')
-
     public class StudentPanel extends JPanel{
 
         JPanel jPanel;
+        JPanel paymentListPanel;
+        JPanel historyListPanel;
         JLabel jlabel;
         JComboBox<String> paxField;
         JTextField nameField, mailField, arrivalDField, arrivalMField, arrivalYField, departureDField, departureMField, departureYField;
@@ -140,7 +130,7 @@ public class Student extends User{
 
         ButtonGroup group;
 
-        Map<String, ArrayList<String>> records, history, payment, paid;
+        Map<String, ArrayList<String>> records, paid;
         DefaultTableModel model, model2;
         
 
@@ -156,7 +146,7 @@ public class Student extends User{
             
             JPanel paymentPanel = new JPanel();
 
-            JPanel paymentListPanel = new JPanel();
+            paymentListPanel = new JPanel();
             paymentListPanel.setLayout(new BoxLayout(paymentListPanel, BoxLayout.Y_AXIS));
             loadPayment(paymentListPanel);
 
@@ -172,6 +162,7 @@ public class Student extends User{
 
         private void loadPayment(JPanel panelRef){
             FileHandler fileHandler = new FileHandler("Applications.txt");
+            Map<String, ArrayList<String>> payment;
             payment = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
 
             String currentUser = getUsername();
@@ -220,32 +211,21 @@ public class Student extends User{
                                                     paid = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
                                                     application.setPaidStatus("PAID");
                                                     application.Save();
-
-                                                    panelRef.removeAll();
-                                                    loadPayment(panelRef);
-                                                    panelRef.validate();
-                                                    panelRef.repaint();
-
+                                                    refreshPayment(panelRef);
                                                     Close();
                                                 }
                                             });
                                             paymentCheckDialogPanel.add(cfmPayButton);
                                             add(paymentCheckDialogPanel);
-
-                                            
-
-                                            //DisplayDialog();
                                         }
                                         @Override
                                         void CreateForm(JPanel dialogPanel) {
-                                            //only make it so that display label grid shows payment details
                                             Gui.displayLabelGrid(dialogPanel, infoArray, labelArray, 0); 
                                         }
                                     };
                                 }
                             };
                         }
-
                         @Override
                         public void mousePressed(MouseEvent e) {}
 
@@ -314,8 +294,7 @@ public class Student extends User{
                 add(paymentDialogPanel);
             }
 
-            public void CreateConfirmation() { //abstract class to create dialog on makepayment button (clicked)
-
+            public void CreateConfirmation() { 
             }
 
             @Override
@@ -337,14 +316,12 @@ public class Student extends User{
         }
 
         private JPanel appHistory(){
-            FileHandler fileHandler = new FileHandler("Applications.txt");
-            history = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        
+
             JPanel historyPanel = new JPanel();
 
-            JPanel historyListPanel = new JPanel();
+            historyListPanel = new JPanel();
             historyListPanel.setLayout(new BoxLayout(historyListPanel, BoxLayout.Y_AXIS));
-            loadHistory(history, historyListPanel);
+            loadHistory(historyListPanel);
 
             JScrollPane scrollPane = new JScrollPane(historyListPanel);
             scrollPane.setPreferredSize(new Dimension(480, 260));
@@ -353,6 +330,7 @@ public class Student extends User{
 
             return historyPanel;
         }
+
 
 
        private class HistoryDialog extends DialogForm{
@@ -391,7 +369,10 @@ public class Student extends User{
         }
         
         
-        private void loadHistory(Map<String, ArrayList<String>> history, JPanel panelRef) {
+        private void loadHistory(JPanel panelRef) {
+            FileHandler fileHandler = new FileHandler("Applications.txt");
+            Map<String, ArrayList<String>> history;
+            history = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
             String currentUser = getUsername();
             for (String key : history.keySet()) {
                 ArrayList<String> details = history.get(key);
@@ -443,6 +424,22 @@ public class Student extends User{
             }
            
         }
+
+        private void refreshPayment(JPanel panelRef) {
+            panelRef.removeAll();
+            loadPayment(panelRef);
+            panelRef.validate();
+            panelRef.repaint();
+        }
+
+        private void refreshHistory(JPanel panelRef) {
+            panelRef.removeAll();
+            loadHistory(panelRef);
+            panelRef.validate();
+            panelRef.repaint();
+        }
+
+
 
 
         private JPanel availableRooms() {
@@ -944,23 +941,10 @@ public class Student extends User{
             formPanel.add(clearButton, c);
 
             JButton reserveButton = new JButton("Apply", null);
-            Pattern datePattern = Pattern.compile("^\\d{2}-\\d{2}-\\d{4}$"); //regular expression to check if string input == valid date pattern
             DateTimeFormatter zdrFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            Calendar calendar = Calendar.getInstance();
-            // Date today = calendar.getTime();
-            // SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
             String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")); 
-            // sdf.setLenient(false); // so that the pattern has to match the specified format
-            // String todayString = sdf.format(today);  
             LocalDate todayDate = LocalDate.parse(today,zdrFormatter);
-                    // try {
-                    //     todayDate = LocalDate.parse(today, zdrFormatter); 
-                    //     // String formattedTodayDate = todayDate.format(zdrFormatter);
-                    //     // System.out.println(formattedTodayDate);
-                    // } catch (DateTimeParseException ex) {
-                    //     ex.printStackTrace();
-                    // } 
-         
+
             reserveButton.setPreferredSize(new Dimension(100, 30));
             c.gridx = 1;
             c.gridy = 4;
@@ -979,20 +963,11 @@ public class Student extends User{
                     if (paxField != null){
                         selectedItem = (String) paxField.getSelectedItem();
                     }
-                    // Date todayDate = null;
-                    // try {
-                    //     todayDate = sdf.parse(todayString); 
-                    //     // String formattedTodayDate = todayDate.format(zdrFormatter);
-                    //     // System.out.println(formattedTodayDate);
-                    // } catch (DateTimeParseException ex) {
-                    //     ex.printStackTrace();
-                    // }
-
+ 
                     inputArrDDate = arrivalDField.getText();
                     inputArrMDate = arrivalMField.getText();
                     inputArrYDate = arrivalYField.getText();    
-                    String ArrDate = inputArrDDate + "-" + inputArrMDate + "-" + inputArrYDate;
-                    System.out.println(ArrDate);
+                    String ArrDate = String.format("%02d-%02d-%04d", Integer.parseInt(inputArrDDate), Integer.parseInt(inputArrMDate), Integer.parseInt(inputArrYDate));
                     try {     //try catch to parse string to date
                         arrDateParsed = LocalDate.parse(ArrDate, zdrFormatter);
                         arrivalDField.setForeground(Color.BLACK);
@@ -1009,7 +984,7 @@ public class Student extends User{
                     inputDepMDate = departureMField.getText();
                     inputDepYDate = departureYField.getText();
                     
-                    String DepDate = inputDepDDate + "-" + inputDepMDate + "-" + inputDepYDate;
+                    String DepDate = String.format("%02d-%02d-%04d", Integer.parseInt(inputDepDDate), Integer.parseInt(inputDepMDate), Integer.parseInt(inputDepYDate));
                     try {
                         DepDateParsed = LocalDate.parse(DepDate, zdrFormatter);
                         departureDField.setForeground(Color.BLACK);
@@ -1170,8 +1145,6 @@ public class Student extends User{
             departureField2.setPreferredSize(labelSize);
             cfmPanel.add(departureField2, f);
 
-            
-
             JLabel specialLabel2 = new JLabel("Additional Request: ");
             f.gridx = 0;
             f.gridy = 6;
@@ -1215,7 +1188,6 @@ public class Student extends User{
             priceLabel2.setPreferredSize(labelSize);
             cfmPanel.add(priceLabel2, f);
 
-
             JButton cancelButton = new JButton("Cancel", null);
             f.gridx = 0;
             f.gridy = 8; 
@@ -1228,55 +1200,64 @@ public class Student extends User{
             });
             cfmPanel.add(cancelButton, f);
 
-            JButton cfmButton = new JButton("Pay Now", null);
+        
+            JButton payLaterButton = new JButton("Pay Later", null);
             f.gridx = 1;
             f.gridy = 8; 
-            cfmButton.addActionListener(new ActionListener() {
+            payLaterButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    Instant arr = arrDateParsed.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-                    Instant dep = DepDateParsed.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-
                     Application application = new Application();
 
-                
+
                     application.setRoomType(selectedRoomText);
                     application.setOccupant(getUsername());
-                    application.setArrivalDate(java.util.Date.from(arr)); //can only accept 'date'
-                    application.setDepartureDate(java.util.Date.from(dep));
-                    application.setStatus("AVAILABLE");
-                    application.setPaidStatus("PENDING");
+                    application.setArrivalDate(arrDateParsed); //can only accept 'date'
+                    application.setDepartureDate(DepDateParsed);
+                    application.setStatus("PENDING");
+                    application.setPaidStatus("UNPAID");
                     application.setPrice(priceLabel2.getText());
 
                     application.Save();
-                    
 
+                    JOptionPane.showMessageDialog(cfmDialog, "Reservation made successfully.");
+                    refreshPayment(paymentListPanel);
+                    refreshHistory(historyListPanel);
 
 
                     Window window = SwingUtilities.getWindowAncestor(cfmPanel);
                     window.dispose();
-                    //id hv to load application first rite but how to pass application id when it's not an input by 'student'
+                }
+            });
+            cfmPanel.add(payLaterButton, f);
 
+            JButton cfmButton = new JButton("Pay Now", null);
+            f.gridx = 3;
+            f.gridy = 8; 
+            cfmButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Application application = new Application();
 
-                    //do i revalidate to refresh the page everytime the button is clicked
+                    application.setRoomType(selectedRoomText);
+                    application.setOccupant(getUsername());
+                    application.setArrivalDate(arrDateParsed); //can only accept 'date'
+                    application.setDepartureDate(DepDateParsed);
+                    application.setStatus("PENDING");
+                    application.setPaidStatus("UNPAID");
+                    application.setPrice(priceLabel2.getText());
 
+                    application.Save();
+
+                    JOptionPane.showMessageDialog(cfmDialog, "Paid successfully.");
+                    refreshPayment(paymentListPanel);
+                    refreshHistory(historyListPanel);
+                    Window window = SwingUtilities.getWindowAncestor(cfmPanel);
+                    window.dispose();
                 }
             });
             cfmPanel.add(cfmButton, f);
-
             return(cfmDialog);
-        }
-
-        
+        }  
     }
-        
-        
-
-    
-            
-
-    }
-
-
-        
-
+}
