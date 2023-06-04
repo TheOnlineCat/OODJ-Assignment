@@ -119,7 +119,7 @@ public class Student extends User{
         JTextArea specialField;
         JRadioButton roomFieldS, roomFieldM, roomFieldL;
         JButton clearButton;
-        String inputName, inputMail, inputRoom, inputGuests, inputArrDDate, inputArrMDate, inputArrYDate, inputDepDDate, inputDepMDate, inputDepYDate,ArrDate, DepDate;
+        String inputName, inputMail, inputRoom, inputGuests, inputArrDDate, inputArrMDate, inputArrYDate, inputDepDDate, inputDepMDate, inputDepYDate, ArrDate, DepDate;
 
         String inputAddReq;
         String selectedRoomText;
