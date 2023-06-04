@@ -72,12 +72,12 @@ public class LoginPanel extends JPanel implements ActionListener{
 
         buttonPanel = new JPanel();
         buttonPanel.add(loginButton);
+
         this.add(buttonPanel);
         
         
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setBackground(Color.LIGHT_GRAY);
-        
     }
 
     

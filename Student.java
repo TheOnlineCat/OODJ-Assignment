@@ -77,6 +77,7 @@ public class Student extends User{
                 loadInfo(userDict.get(key));
             }
         }
+        String data = getMail() + "tes" ;
     }
 
     @Override
@@ -92,7 +93,8 @@ public class Student extends User{
             getName(), 
             gender, 
             Integer.toString(age), 
-            mail
+            mail,
+            getUsername()
             ));
         return list;
     }
@@ -358,6 +360,11 @@ public class Student extends User{
             @Override
             void DisplayDialog() {
                 setVisible(true);
+            }
+
+            @Override
+            void Close() {
+                dispose();
             }
         
         }

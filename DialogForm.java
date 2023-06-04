@@ -13,6 +13,8 @@ public abstract class DialogForm extends JDialog{
 
     abstract void DisplayDialog();
 
+    abstract void Close();
+
     //abstract void createButton();
 
 }
