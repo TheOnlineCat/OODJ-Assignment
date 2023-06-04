@@ -273,6 +273,7 @@ public class Student extends User{
                 DisplayDialog();
             }
 
+            @Override
             public void Close(){
                 dispose();
             }
