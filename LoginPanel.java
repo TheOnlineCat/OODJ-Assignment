@@ -96,7 +96,7 @@ public class LoginPanel extends JPanel implements ActionListener{
             ArrayList<String> userLogin = records.get(usernameField.getText());
             
             if(userLogin == null) {
-                System.out.println("User does not exist");
+                JOptionPane.showMessageDialog(this, "Invalid Credentials", "Error Logging into Account", JOptionPane.ERROR_MESSAGE, null);
                 return;
             }
 
@@ -111,6 +111,8 @@ public class LoginPanel extends JPanel implements ActionListener{
                         createStudentPage(usernameField.getText());
                         break;
                 }
+            }else{
+                JOptionPane.showMessageDialog(this, "Invalid Credentials", "Error Logging into Account", JOptionPane.ERROR_MESSAGE, null);
             }
     }
 
