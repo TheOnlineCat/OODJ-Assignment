@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.IllegalFormatConversionException;
 import java.util.Map;
 
 import javax.swing.*;
@@ -115,11 +116,11 @@ public class Student extends User{
         JPanel historyListPanel;
         JLabel jlabel;
         JComboBox<String> paxField;
-        JTextField nameField, mailField, arrivalDField, arrivalMField, arrivalYField, departureDField, departureMField, departureYField;
+         
         JTextArea specialField;
         JRadioButton roomFieldS, roomFieldM, roomFieldL;
         JButton clearButton;
-        String inputName, inputMail, inputRoom, inputGuests, inputArrDDate, inputArrMDate, inputArrYDate, inputDepDDate, inputDepMDate, inputDepYDate, ArrDate, DepDate;
+
 
         String inputAddReq;
         String selectedRoomText;
@@ -499,13 +500,15 @@ public class Student extends User{
 
         public StudentPanel(){  
             //FORM 1 (LEFT)
+            
             JTabbedPane tabbed = new JTabbedPane();
             
             JPanel applicationPanel = new JPanel(); //first tabbed panel
             applicationPanel.setLayout(new BorderLayout());
 
-            JPanel form2Panel = createRightForm();
             JPanel formPanel = createLeftForm();
+            JPanel form2Panel = createRightForm(formPanel);
+            
 
             applicationPanel.add(formPanel, BorderLayout.WEST);
             applicationPanel.add(form2Panel, BorderLayout.EAST);
@@ -573,7 +576,8 @@ public class Student extends User{
             formPanel.add(nameLabel, c);
 
             //name textfield
-            nameField = new JTextField("Enter name here");
+            JTextField nameField = new JTextField("Enter name here");
+            nameField.setName("name");
             nameField.setColumns(10);
             nameField.setFont(placeholder);
             nameField.setForeground(Color.DARK_GRAY);
@@ -605,8 +609,8 @@ public class Student extends User{
             formPanel.add(mailLabel, c);
 
             //mail text field
-            mailField = new JTextField("Enter e-mail here");
-            //mailField.setMinimumSize(new Dimension(100,20));
+            JTextField mailField = new JTextField("Enter e-mail here");
+            mailField.setName("mail");
             mailField.setFont(placeholder);
             mailField.setForeground(Color.DARK_GRAY);
             c.gridx = 1;
@@ -669,49 +673,11 @@ public class Student extends User{
             c.gridx = 1;
             c.gridy = 4;
             formPanel.add(paxField, c);
-         
-
-
-            clearButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e){
-                    nameField.setText("Enter name here"); //clears textfield
-                    nameField.setFont(text); //set text back to plain instead of italics
-    
-                    mailField.setText("Enter e-mail here");
-                    mailField.setFont(text);
-
-                    arrivalDField.setText("DD");
-                    arrivalMField.setText("MM");
-                    arrivalYField.setText("YYYY");
-                    
-                    
-                    arrivalDField.setFont(text);
-                    arrivalMField.setFont(text);
-                    arrivalYField.setFont(text);
-
-                    departureDField.setText("DD");
-                    departureMField.setText("MM");
-                    departureYField.setText("YYYY");
-                    
-                    departureDField.setFont(text);
-                    departureMField.setFont(text);
-                    departureYField.setFont(text);
-    
-                    specialField.setText("Enter additional request here ");
-                    specialField.setFont(text);
-    
-                    group.clearSelection();
-                    
-
-    
-                    paxField.setSelectedIndex(0);
-                }});
-
 
             return(formPanel);
         }
 
-        private JPanel createRightForm() { //right panel
+        private JPanel createRightForm(JPanel leftForm) { //right panel
             JPanel formPanel = new JPanel();
             formPanel.setLayout(new GridBagLayout());
             formPanel.setPreferredSize(new Dimension(250, 280));
@@ -729,7 +695,8 @@ public class Student extends User{
             formPanel.add(arrivalLabel, c);
 
             JPanel datePanel = new JPanel(new GridBagLayout());
-            arrivalDField = new JTextField("DD", 2);                  //change to three text box in panel
+            JTextField arrivalDField = new JTextField("DD", 2);
+            arrivalDField.setName("arrDay");
             arrivalDField.setMinimumSize(dateSize);
             arrivalDField.setPreferredSize(dateSize);
             arrivalDField.setFont(placeholder);
@@ -754,7 +721,8 @@ public class Student extends User{
                 }
             });
 
-            arrivalMField = new JTextField("MM", 2);     
+            JTextField arrivalMField = new JTextField("MM", 2);     
+            arrivalMField.setName("arrMonth");
             arrivalMField.setMinimumSize(dateSize);
             arrivalMField.setPreferredSize(dateSize);
             arrivalMField.setFont(placeholder);
@@ -781,7 +749,8 @@ public class Student extends User{
             });
 
 
-            arrivalYField  = new JTextField("YYYY", 4);
+            JTextField arrivalYField  = new JTextField("YYYY", 4);
+            arrivalYField.setName("arrYear");
             arrivalYField.setMinimumSize(dateYearSize);
             arrivalYField.setPreferredSize(dateYearSize);
             arrivalYField.setFont(placeholder);
@@ -819,7 +788,8 @@ public class Student extends User{
             formPanel.add(departureLabel, c);
 
             JPanel departureDatePanel = new JPanel(new GridBagLayout());
-            departureDField = new JTextField("DD", 2);
+            JTextField departureDField = new JTextField("DD", 2);
+            departureDField.setName("depDay");
             departureDField.setMinimumSize(dateSize);
             departureDField.setPreferredSize(dateSize);
             departureDField.setFont(placeholder);
@@ -844,7 +814,8 @@ public class Student extends User{
                 }
             });
 
-            departureMField = new JTextField("MM", 2);
+            JTextField departureMField = new JTextField("MM", 2);
+            departureMField.setName("depMonth");
             departureMField.setMinimumSize(dateSize);
             departureMField.setPreferredSize(dateSize);
             departureMField.setFont(placeholder);
@@ -868,7 +839,8 @@ public class Student extends User{
                 }
             });
 
-            departureYField = new JTextField("YYYY", 4);
+            JTextField departureYField = new JTextField("YYYY", 4);
+            departureYField.setName("depYear");
             departureYField.setMinimumSize(dateYearSize);
             departureYField.setPreferredSize(dateYearSize);
             departureYField.setFont(placeholder);
@@ -938,6 +910,56 @@ public class Student extends User{
             clearButton.setPreferredSize(new Dimension(100, 30));
             c.gridx = 0;
             c.gridy = 4;
+
+            clearButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    for (Component c : leftForm.getComponents()) {
+                        if (c.getName() == null){
+                            continue;
+                        }
+                        switch (c.getName()){
+                            case ("name"):{
+                                JTextField field = (JTextField) c;
+                                field.setText("Enter name here");
+                                field.setFont(text);
+                                break;
+                            }
+                            case ("mail"):{
+                                JTextField field = (JTextField) c;
+                                field.setText("Enter e-mail here");
+                                field.setFont(text);
+                                break;
+                            }
+                        }
+
+                    }
+
+                    arrivalDField.setText("DD");
+                    arrivalMField.setText("MM");
+                    arrivalYField.setText("YYYY");
+                    
+                    
+                    arrivalDField.setFont(text);
+                    arrivalMField.setFont(text);
+                    arrivalYField.setFont(text);
+
+                    departureDField.setText("DD");
+                    departureMField.setText("MM");
+                    departureYField.setText("YYYY");
+                    
+                    departureDField.setFont(text);
+                    departureMField.setFont(text);
+                    departureYField.setFont(text);
+    
+                    specialField.setText("Enter additional request here ");
+                    specialField.setFont(text);
+    
+                    group.clearSelection();
+                    
+
+    
+                    paxField.setSelectedIndex(0);
+                }});
             
             formPanel.add(clearButton, c);
 
@@ -952,8 +974,33 @@ public class Student extends User{
             reserveButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    inputName = nameField.getText();
-                    inputMail = mailField.getText();
+                    Map<String,String> input = new HashMap();
+                    for (Component c : leftForm.getComponents()) {
+                        if (c.getName() == null){
+                            continue;
+                        }
+                        switch (c.getName()){
+                            case ("name"):{
+                                JTextField field = (JTextField) c;
+                                input.put("Name", field.getText());
+                                break;
+                            }
+                            case ("mail"):{
+                                JTextField field = (JTextField) c;
+                                input.put("Mail", field.getText());
+                                break;
+                            }
+                        }
+                    }
+
+                    
+                    input.put("Arrival Day", arrivalDField.getText());
+                    input.put("Arrival Month", arrivalMField.getText());
+                    input.put("Arrival Year", arrivalYField.getText());
+                    input.put("Departure Day", departureDField.getText());
+                    input.put("Departure Month", departureMField.getText());
+                    input.put("Departure Year", departureYField.getText());
+
                     for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {
                         AbstractButton button = buttons.nextElement();
                         if (button.isSelected()) {
@@ -964,40 +1011,54 @@ public class Student extends User{
                     if (paxField != null){
                         selectedItem = (String) paxField.getSelectedItem();
                     }
- 
-                    inputArrDDate = arrivalDField.getText();
-                    inputArrMDate = arrivalMField.getText();
-                    inputArrYDate = arrivalYField.getText();    
-                    String ArrDate = String.format("%02d-%02d-%04d", Integer.parseInt(inputArrDDate), Integer.parseInt(inputArrMDate), Integer.parseInt(inputArrYDate));
-                    try {     //try catch to parse string to date
-                        arrDateParsed = LocalDate.parse(ArrDate, zdrFormatter);
-                        arrivalDField.setForeground(Color.BLACK);
-                        arrivalMField.setForeground(Color.BLACK);
-                        arrivalYField.setForeground(Color.BLACK);
-                    } catch (DateTimeParseException ex) {
+
+                    
+                    try{
+                        String ArrDate = String.format("%02d-%02d-%04d", Integer.parseInt(input.get("Arrival Day")), Integer.parseInt(input.get("Arrival Month")), Integer.parseInt(input.get("Arrival Year")));
+                        System.out.println(ArrDate);
+                        try {   
+                            arrDateParsed = LocalDate.parse(ArrDate, zdrFormatter);
+                            arrivalDField.setForeground(Color.BLACK);
+                            arrivalMField.setForeground(Color.BLACK);
+                            arrivalYField.setForeground(Color.BLACK);
+                        } catch (DateTimeParseException ex) {
+                            JOptionPane.showMessageDialog(formPanel, "Wrong date entered", "Error Message", JOptionPane.ERROR_MESSAGE);
+                            arrivalDField.setForeground(Color.RED);
+                            arrivalMField.setForeground(Color.RED);
+                            arrivalYField.setForeground(Color.RED);
+                            return;
+                        }
+                    } catch(NumberFormatException ex) {
                         JOptionPane.showMessageDialog(formPanel, "Invalid date entered", "Error Message", JOptionPane.ERROR_MESSAGE);
                         arrivalDField.setForeground(Color.RED);
                         arrivalMField.setForeground(Color.RED);
                         arrivalYField.setForeground(Color.RED);
                         return;
                     }
-                    inputDepDDate = departureDField.getText();
-                    inputDepMDate = departureMField.getText();
-                    inputDepYDate = departureYField.getText();
+
                     
-                    String DepDate = String.format("%02d-%02d-%04d", Integer.parseInt(inputDepDDate), Integer.parseInt(inputDepMDate), Integer.parseInt(inputDepYDate));
-                    try {
-                        DepDateParsed = LocalDate.parse(DepDate, zdrFormatter);
-                        departureDField.setForeground(Color.BLACK);
-                        departureMField.setForeground(Color.BLACK);
-                        departureYField.setForeground(Color.BLACK);
-                    } catch (DateTimeParseException ex) {
+                    try{
+                        String DepDate = String.format("%02d-%02d-%04d", Integer.parseInt(input.get("Departure Day")), Integer.parseInt(input.get("Departure Month")), Integer.parseInt(input.get("Departure Year")));
+                        try {
+                            DepDateParsed = LocalDate.parse(DepDate, zdrFormatter);
+                            departureDField.setForeground(Color.BLACK);
+                            departureMField.setForeground(Color.BLACK);
+                            departureYField.setForeground(Color.BLACK);
+                        } catch (DateTimeParseException ex) {
+                            JOptionPane.showMessageDialog(formPanel, "Wrong date entered", "Error Message", JOptionPane.ERROR_MESSAGE);
+                            departureDField.setForeground(Color.RED);
+                            departureMField.setForeground(Color.RED);
+                            departureYField.setForeground(Color.RED);
+                            return;
+                        }
+                    } catch(NumberFormatException ex) {
                         JOptionPane.showMessageDialog(formPanel, "Invalid date entered", "Error Message", JOptionPane.ERROR_MESSAGE);
                         departureDField.setForeground(Color.RED);
                         departureMField.setForeground(Color.RED);
                         departureYField.setForeground(Color.RED);
                         return;
                     }
+                   
 
                     
                     if (arrDateParsed != null) {
@@ -1026,24 +1087,25 @@ public class Student extends User{
 
                     inputAddReq = specialField.getText();
                     
-                    if (inputName == "Enter name here" || inputName.isEmpty() || 
-                        inputMail == "Enter e-mail here" || inputMail.isEmpty() ||
+                    if (input.get("Name") == "Enter name here" || input.get("Name").isEmpty() || 
+                        input.get("Mail") == "Enter e-mail here" || input.get("Mail").isEmpty() ||
                         selectedItem == null ||
                         selectedRoomText == null ||
                         specialField.getText() == "Enter additional request here")
                         JOptionPane.showMessageDialog(formPanel, "Please fill in all fields!", "Error Message", JOptionPane.ERROR_MESSAGE);
                      else {
-                        JDialog cfmDialog = createReservationForm();
+                        JDialog cfmDialog = createReservationForm(input);
                         cfmDialog.setVisible(true);
                     }    
                 }});
+
 
             formPanel.add(reserveButton, c);
             
             return formPanel;
         }
 
-        private JDialog createReservationForm() {
+        private JDialog createReservationForm(Map<String,String> input) {
             
             JDialog cfmDialog = new JDialog();
             cfmDialog.setTitle("Confirm Reservation");
@@ -1069,7 +1131,7 @@ public class Student extends User{
             nameLabel2.setPreferredSize(labelSize);
             cfmPanel.add(nameLabel2, f);
 
-            JLabel nameField2 = new JLabel(inputName);
+            JLabel nameField2 = new JLabel(input.get("Name"));
             f.gridx = 1;
             f.gridy = 0;    
             nameField2.setMinimumSize(labelSize);
@@ -1083,7 +1145,7 @@ public class Student extends User{
             mailLabel2.setPreferredSize(labelSize); 
             cfmPanel.add(mailLabel2, f);        
 
-            JLabel mailField2 = new JLabel(inputMail);
+            JLabel mailField2 = new JLabel(input.get("Mail"));
             f.gridx = 1;
             f.gridy = 1;    
             mailField2.setMinimumSize(labelSize);
@@ -1125,7 +1187,7 @@ public class Student extends User{
             arrivalLabel2.setPreferredSize(labelSize);
             cfmPanel.add(arrivalLabel2, f);
 
-            JLabel arrivalField2 = new JLabel(inputArrDDate + "-" + inputArrMDate + "-" + inputArrYDate);
+            JLabel arrivalField2 = new JLabel(input.get("Arrival Day") + "-" + input.get("Arrival Month") + "-" + input.get("Arrival Year"));
             f.gridx = 1;
             f.gridy = 4;    
             arrivalField2.setMinimumSize(labelSize);
@@ -1139,7 +1201,7 @@ public class Student extends User{
             departureLabel2.setPreferredSize(labelSize);
             cfmPanel.add(departureLabel2, f);
 
-            JLabel departureField2 = new JLabel(inputDepDDate + "-" + inputDepMDate + "-" + inputDepYDate);
+            JLabel departureField2 = new JLabel(input.get("Departure Day") + "-" + input.get("Departure Month") + "-" + input.get("Departure Year"));
             f.gridx = 1;
             f.gridy = 5;    
             departureField2.setMinimumSize(labelSize);
