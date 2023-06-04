@@ -102,19 +102,21 @@ public class Application implements Saveable{
         this.price = price;
     }
 
+    public String getOccupant() {
+        return username;
+    }
+
+    public void setOccupant(String username){
+        this.username = username;
+    }
 
     public Application(){
         this.applicationID = GetHighestNullID();
     }
 
-
     public Application(String applicationID){
         if (Load(applicationID));
             this.applicationID = applicationID;
-    }
-
-    public void setOccupant(String username){
-        this.username = username;
     }
 
     @Override
