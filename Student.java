@@ -1012,7 +1012,16 @@ public class Student extends User{
                         selectedItem = (String) paxField.getSelectedItem();
                     }
 
-                    
+                    if (input.get("Name").equals("Enter name here") || input.get("Name").isEmpty() || 
+                        input.get("Mail").equals("Enter e-mail here") || input.get("Mail").isEmpty() ||
+                        selectedItem == null ||
+                        selectedRoomText == null ||
+                        specialField.getText().equals("Enter additional request here")){
+                        JOptionPane.showMessageDialog(formPanel, "Please fill in all fields!", "Error Message", JOptionPane.ERROR_MESSAGE);
+                        return;}
+
+                       
+
                     try{
                         String ArrDate = String.format("%02d-%02d-%04d", Integer.parseInt(input.get("Arrival Day")), Integer.parseInt(input.get("Arrival Month")), Integer.parseInt(input.get("Arrival Year")));
                         System.out.println(ArrDate);
@@ -1087,16 +1096,8 @@ public class Student extends User{
 
                     inputAddReq = specialField.getText();
                     
-                    if (input.get("Name") == "Enter name here" || input.get("Name").isEmpty() || 
-                        input.get("Mail") == "Enter e-mail here" || input.get("Mail").isEmpty() ||
-                        selectedItem == null ||
-                        selectedRoomText == null ||
-                        specialField.getText() == "Enter additional request here")
-                        JOptionPane.showMessageDialog(formPanel, "Please fill in all fields!", "Error Message", JOptionPane.ERROR_MESSAGE);
-                     else {
-                        JDialog cfmDialog = createReservationForm(input);
-                        cfmDialog.setVisible(true);
-                    }    
+                    JDialog cfmDialog = createReservationForm(input);
+                    cfmDialog.setVisible(true);    
                 }});
 
 
