@@ -598,7 +598,7 @@ public class Admin extends User {
                 this.add(panel);
             }
 
-            JTextField[] getFields(JPanel formPanel) {
+            private JTextField[] getFields(JPanel formPanel) {
                 ArrayList<JTextField> fields = new ArrayList<JTextField>();
                 for(Component comp : formPanel.getComponents()) {
                     if (!(comp instanceof JTextField)) continue;
@@ -635,7 +635,8 @@ public class Admin extends User {
                 return true;
             }
 
-            public void Close() {
+            @Override
+            void Close() {
                 dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
             }
 
@@ -820,13 +821,7 @@ public class Admin extends User {
     
             Application application;
     
-            JPanel applicationPanel;
-            JPanel applicationDetailPanel;
-            JPanel buttonPanel;
-            
-            JButton acceptButton;
-            JButton rejectButton;
-            
+            JPanel applicationPanel;  
     
             public ApplicationDialog(String applicationId) {
 
@@ -850,14 +845,14 @@ public class Admin extends User {
 
                 CreateForm(applicationPanel);
     
-                buttonPanel = new JPanel();
+                JPanel buttonPanel = new JPanel();
                 buttonPanel.setLayout(new GridBagLayout());
                 c = new GridBagConstraints();
                                 
                 if (application.getStatus().equals("PENDING")) {
                     c.gridx = 0;
                     c.gridy = 0;
-                    acceptButton = new JButton("Accept");
+                    JButton acceptButton = new JButton("Accept");
                     acceptButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
@@ -870,7 +865,7 @@ public class Admin extends User {
     
                     c.gridx = 1;
                     c.gridy = 0;
-                    rejectButton = new JButton("Reject");
+                    JButton rejectButton = new JButton("Reject");
                     rejectButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
@@ -900,7 +895,7 @@ public class Admin extends User {
 
             @Override
             void CreateForm(JPanel dialogPanel) {
-                applicationDetailPanel = new JPanel();
+                JPanel applicationDetailPanel = new JPanel();
                 applicationDetailPanel.setLayout(new GridBagLayout());
                 Gui.displayLabelGrid(applicationDetailPanel, infoArray, labelArray, 0);
                 dialogPanel.add(applicationDetailPanel);
