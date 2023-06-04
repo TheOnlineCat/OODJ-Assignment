@@ -77,7 +77,6 @@ public class Student extends User{
                 loadInfo(userDict.get(key));
             }
         }
-        String data = getMail() + "tes" ;
     }
 
     @Override
@@ -211,7 +210,7 @@ public class Student extends User{
                                                     FileHandler fileHandler = new FileHandler("Applications.txt");
                                                     paid = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
                                                     application.setPaidStatus("PAID");
-                                                    application.saveApplication();
+                                                    application.Save();
                                                     refreshPayment(panelRef);
                                                     Close();
                                                 }
@@ -1211,6 +1210,7 @@ public class Student extends User{
                 public void actionPerformed(ActionEvent e) {
                     Application application = new Application();
 
+
                     application.setRoomType(selectedRoomText);
                     application.setOccupant(getUsername());
                     application.setArrivalDate(arrDateParsed); //can only accept 'date'
@@ -1219,7 +1219,7 @@ public class Student extends User{
                     application.setPaidStatus("UNPAID");
                     application.setPrice(priceLabel2.getText());
 
-                    application.saveApplication();
+                    application.Save();
 
                     JOptionPane.showMessageDialog(cfmDialog, "Reservation made successfully.");
                     refreshPayment(paymentListPanel);
@@ -1248,7 +1248,7 @@ public class Student extends User{
                     application.setPaidStatus("UNPAID");
                     application.setPrice(priceLabel2.getText());
 
-                    application.saveApplication();
+                    application.Save();
 
                     JOptionPane.showMessageDialog(cfmDialog, "Paid successfully.");
                     refreshPayment(paymentListPanel);

@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-public class Hostel {
+public class Hostel implements Saveable{
 
     private String hostelID;
     private String roomType;
@@ -44,10 +44,11 @@ public class Hostel {
 
     public Hostel(String id) {
         hostelID = id;
-        loadHostel(id);
+        Load(id);
     }
 
-    private boolean loadHostel(String hostelID) {
+    @Override
+    public boolean Load(String hostelID) {
         FileHandler fileHandler = new FileHandler("Hostels.txt");
         Map<String, ArrayList<String>> hostelDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         for(String key : hostelDict.keySet()) {
@@ -61,7 +62,8 @@ public class Hostel {
         return(false);
     }
 
-    public void deleteHostel () {
+    @Override
+    public void Delete () {
         FileHandler fileHandler = new FileHandler("Hostels.txt");
         Map<String, ArrayList<String>> HostelDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         HostelDict.remove(this.hostelID);
@@ -75,7 +77,8 @@ public class Hostel {
         fileHandler.save(HostelDict);
     }
 
-    public void saveHostel(){
+    @Override
+    public void Save(){
         List<String> newInfo = Arrays.asList(roomType, Integer.toString(price), status);
 
         FileHandler fileHandler = new FileHandler("Hostels.txt");

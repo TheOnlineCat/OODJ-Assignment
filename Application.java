@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-public class Application{
+public class Application implements Saveable{
 
     public static final String[] DETAILS = {
         "Application ID",
@@ -109,7 +109,7 @@ public class Application{
 
 
     public Application(String applicationID){
-        if (loadApplication(applicationID));
+        if (Load(applicationID));
             this.applicationID = applicationID;
     }
 
@@ -117,7 +117,8 @@ public class Application{
         this.username = username;
     }
 
-    private boolean loadApplication(String applicationID) {
+    @Override
+    public boolean Load(String applicationID) {
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         for(String key : applicationDict.keySet()) {
@@ -148,23 +149,24 @@ public class Application{
         return(false);
     }
 
-    public void deleteApplication () {
+    @Override
+    public void Delete () {
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         applicationDict.remove(applicationID);
         fileHandler.save(applicationDict);
     }
 
-    public static void deleteApplication (String appID) {
+    public static void Delete (String ID) {
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        applicationDict.remove(appID);
+        applicationDict.remove(ID);
         fileHandler.save(applicationDict);
     }
 
-
-    public void saveApplication(){
-        List<String> newInfo = Arrays.asList(roomType, username, this.getArrivalDate().toString(), this.getDepartureDate().toString(), status, paidStatus, price);
+    @Override
+    public void Save(){
+        List<String> newInfo = Arrays.asList(roomType, username, this.getArrivalDate(), this.getDepartureDate(), status, paidStatus, price);
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);

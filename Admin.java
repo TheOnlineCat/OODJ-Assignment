@@ -549,7 +549,7 @@ public class Admin extends User {
                     }
                 }
                 newHostel.setStatus(radioGroup.getSelection().getActionCommand().toString());
-                newHostel.saveHostel();
+                newHostel.Save();
             }
 
             @Override
@@ -631,7 +631,7 @@ public class Admin extends User {
                 }
                 hostel.setStatus(radioGroup.getSelection().getActionCommand().toString());
 
-                hostel.saveHostel();
+                hostel.Save();
                 return true;
             }
 
@@ -733,7 +733,7 @@ public class Admin extends User {
                 deleteButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        hostel.deleteHostel();
+                        hostel.Delete();
                         Close();
                     }
                 });
@@ -862,7 +862,7 @@ public class Admin extends User {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             application.setStatus("ACCEPTED");
-                            application.saveApplication();
+                            application.Save();
                             Close();                        
                         }
                     });
@@ -875,7 +875,7 @@ public class Admin extends User {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             application.setStatus("REJECTED");
-                            application.saveApplication();
+                            application.Save();
                             Close();
                         }
                     });
