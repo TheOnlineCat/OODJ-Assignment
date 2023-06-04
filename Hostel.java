@@ -70,7 +70,7 @@ public class Hostel implements Saveable{
         fileHandler.save(HostelDict);
     }
 
-    public static void deleteHostel (String hostelID) {
+    public static void Delete (String hostelID) {
         FileHandler fileHandler = new FileHandler("Hostels.txt");
         Map<String, ArrayList<String>> HostelDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         HostelDict.remove(hostelID);
