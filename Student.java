@@ -219,7 +219,7 @@ public class Student extends User{
                                                     FileHandler fileHandler = new FileHandler("Applications.txt");
                                                     paid = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
                                                     application.setPaidStatus("PAID");
-                                                    application.saveApplication();
+                                                    application.Save();
 
                                                     panelRef.removeAll();
                                                     loadPayment(panelRef);
@@ -1248,7 +1248,7 @@ public class Student extends User{
                     application.setPaidStatus("PENDING");
                     application.setPrice(priceLabel2.getText());
 
-                    application.saveApplication();
+                    application.Save();
                     
 
 
