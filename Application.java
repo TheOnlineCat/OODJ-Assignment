@@ -172,7 +172,7 @@ public class Application implements Saveable{
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        applicationDict.put(GetHighestNullID(), new ArrayList<String>(newInfo));
+        applicationDict.put(getApplicationID(), new ArrayList<String>(newInfo));
         fileHandler.save(applicationDict);
         return;
     }
@@ -181,7 +181,6 @@ public class Application implements Saveable{
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         String highestID = Collections.max(applicationDict.keySet());
-        System.out.println(highestID);
         int id = Integer.parseInt(highestID.substring(3)) + 1;
         String nullID = highestID.substring(0, 3) + String.format("%03d", id);
         return nullID;

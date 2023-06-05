@@ -213,6 +213,7 @@ public class Student extends User{
                                                     application.setPaidStatus("PAID");
                                                     application.Save();
                                                     refreshPayment(panelRef);
+                                                    JOptionPane.showMessageDialog(paymentCheckDialogPanel, "Successfully paid");
                                                     Close();
                                                 }
                                             });
@@ -450,7 +451,7 @@ public class Student extends User{
             FileHandler fileHandler = new FileHandler("Hostels.txt");
             records = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
         
-            String columns[] = {"Hostel ID","Room Size","Availability","Price"};
+            String columns[] = {"Hostel ID","Room Size","Price","Availability"};
             model = createTableModel(columns);
             loadHostelTable(records, model);
         
