@@ -199,6 +199,10 @@ public class Admin extends User {
                         JPanel labelPanel = (JPanel)recordPanel.getComponent(0);
                         for(Component label : labelPanel.getComponents()) {
                             JLabel detail = (JLabel)label;
+                            if (search.isEmpty()) {
+                                record.setVisible(true);
+                                break;
+                            }
                             if (detail.getText().toUpperCase().equals(search.toUpperCase())) {
                                 record.setVisible(true);
                                 break;
