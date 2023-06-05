@@ -1,8 +1,13 @@
 
 import java.awt.*;
 import java.awt.event.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
@@ -37,22 +42,44 @@ public class Admin extends User {
         int totalPaid = 0;
         float totalPrice = 0;
 
+        int totalAvailable = 0;
+
         Map<String, ArrayList<String>> applications = getApplications();
 
         for(String key : applications.keySet()) {
             ArrayList<String> application = applications.get(key);
-            if (application.get(4).equals("ACCEPTED")) {
-                totalApplications++;
+            Calendar c = Calendar.getInstance();
+            Calendar current = Calendar.getInstance();
+            try{
+                Date date = new SimpleDateFormat("dd-MM-yyyy").parse(application.get(2));
+                c.setTime(date);
+                if(!(current.get(Calendar.MONTH) == c.get(Calendar.MONTH)
+                && current.get(Calendar.YEAR) == c.get(Calendar.YEAR))) {
+                    continue;
+                }
+            }catch(ParseException e){
+                continue;
             }
+            totalApplications++;
+            
             if (application.get(5).equals("PAID")) {
                 totalPaid++;
+                totalPrice += Float.parseFloat(application.get(6));
             }
-            totalPrice += Float.parseFloat(application.get(6));
+        }
+
+        Map<String, ArrayList<String>> hostels = getHostels();
+        for(String key : hostels.keySet()) {
+            ArrayList<String> hostel = hostels.get(key);
+            if (hostel.get(2).equals("AVAILABLE")) {
+                totalAvailable++;
+            }
         }
 
         String[] details = {
             Integer.toString(totalApplications), 
             Integer.toString(totalPaid),
+            Integer.toString(totalAvailable),
             Float.toString(totalPrice)
         };
         
@@ -172,6 +199,10 @@ public class Admin extends User {
                         JPanel labelPanel = (JPanel)recordPanel.getComponent(0);
                         for(Component label : labelPanel.getComponents()) {
                             JLabel detail = (JLabel)label;
+                            if (search.isEmpty()) {
+                                record.setVisible(true);
+                                break;
+                            }
                             if (detail.getText().toUpperCase().equals(search.toUpperCase())) {
                                 record.setVisible(true);
                                 break;
@@ -374,8 +405,8 @@ public class Admin extends User {
         private void loadReport(JPanel panelRef) {
             JPanel headerPanel = new JPanel();
             Calendar c = Calendar.getInstance();
-            c.set(Calendar.MONTH, c.MONTH - 1);
             c.set(Calendar.DAY_OF_MONTH, 1);  
+            System.out.println(c.get(Calendar.MONTH));
             String month = c.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
             JLabel headerLabel = new JLabel("Report for " + month);
             headerLabel.setBorder(BorderFactory.createEtchedBorder());
@@ -389,12 +420,13 @@ public class Admin extends User {
             reportDetailPanel.setMinimumSize(panelSize);
 
             String[] labelArray = {
-                "Accepted Application",
+                "Total Applications",
                 "Paid Applications",
+                "Available Hostels",
                 "Total Revenue (RM)"
             };
 
-            Gui.displayLabelGrid(reportDetailPanel, new String[] {"0", "0", "0"}, labelArray,0);
+            Gui.displayLabelGrid(reportDetailPanel, new String[] {"-", "-", "-", "-"}, labelArray,0);
 
             JPanel reportButtonPanel = new JPanel();
             JButton generateButton = new JButton("Generate Report");
