@@ -198,7 +198,6 @@ public class Student extends User{
                             JDialog payDialog = new PaymentDialog(tempDetails) {
                                 @Override
                                 public void CreateConfirmation() {
-                                    System.out.println();
                                     JDialog payConfirmDialog = new PaymentDialog(paymentDetails) {
                                         @Override
                                         public void CreateDialog() {
@@ -282,7 +281,7 @@ public class Student extends User{
             public void CreateDialog() {
                 JPanel paymentDialogPanel = new JPanel();
                 CreateForm(paymentDialogPanel);
-                if (infoArray[6].equals("UNPAID")){
+                if (infoArray[6].equals("UNPAID") && !(infoArray[5].equals("PENDING"))){
                     JButton payButton = new JButton("Make Payment");
                     payButton.addActionListener(new ActionListener() {
                         @Override   
@@ -1296,32 +1295,32 @@ public class Student extends User{
             });
             cfmPanel.add(payLaterButton, f);
 
-            JButton cfmButton = new JButton("Pay Now", null);
-            f.gridx = 3;
-            f.gridy = 8; 
-            cfmButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    Application application = new Application();
+            // JButton cfmButton = new JButton("Pay Now", null);
+            // f.gridx = 3;
+            // f.gridy = 8; 
+            // cfmButton.addActionListener(new ActionListener() {
+            //     @Override
+            //     public void actionPerformed(ActionEvent e) {
+            //         Application application = new Application();
 
-                    application.setRoomType(selectedRoomText);
-                    application.setOccupant(getUsername());
-                    application.setArrivalDate(arrDateParsed); //can only accept 'date'
-                    application.setDepartureDate(DepDateParsed);
-                    application.setStatus("PENDING");
-                    application.setPaidStatus("UNPAID");
-                    application.setPrice(priceLabel2.getText());
+            //         application.setRoomType(selectedRoomText);
+            //         application.setOccupant(getUsername());
+            //         application.setArrivalDate(arrDateParsed); //can only accept 'date'
+            //         application.setDepartureDate(DepDateParsed);
+            //         application.setStatus("PENDING");
+            //         application.setPaidStatus("UNPAID");
+            //         application.setPrice(priceLabel2.getText());
 
-                    application.Save();
+            //         application.Save();
 
-                    JOptionPane.showMessageDialog(cfmDialog, "Paid successfully.");
-                    refreshPayment(paymentListPanel);
-                    refreshHistory(historyListPanel);
-                    Window window = SwingUtilities.getWindowAncestor(cfmPanel);
-                    window.dispose();
-                }
-            });
-            cfmPanel.add(cfmButton, f);
+            //         JOptionPane.showMessageDialog(cfmDialog, "Paid successfully.");
+            //         refreshPayment(paymentListPanel);
+            //         refreshHistory(historyListPanel);
+            //         Window window = SwingUtilities.getWindowAncestor(cfmPanel);
+            //         window.dispose();
+            //     }
+            // });
+            // cfmPanel.add(cfmButton, f);
             return(cfmDialog);
         }  
     }
