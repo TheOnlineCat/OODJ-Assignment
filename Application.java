@@ -172,7 +172,7 @@ public class Application implements Saveable{
 
         FileHandler fileHandler = new FileHandler("Applications.txt");
         Map<String, ArrayList<String>> applicationDict = fileHandler.parseAsDict(fileHandler.read(), FileHandler.SEPERATOR, 0);
-        applicationDict.put(GetHighestNullID(), new ArrayList<String>(newInfo));
+        applicationDict.put(getApplicationID(), new ArrayList<String>(newInfo));
         fileHandler.save(applicationDict);
         return;
     }
