@@ -133,7 +133,15 @@ public class Admin extends User {
             searchField.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    JPanel tabPanel = (JPanel)mainPanel.getSelectedComponent();
+                    Component comp = mainPanel.getSelectedComponent();
+                    if(comp instanceof JLayer) {
+                        JLayer<Component> layer = (JLayer<Component>)comp;
+                        for(Component layerC : layer.getComponents()) {
+                            if(layerC instanceof JPanel) 
+                            comp = layerC;
+                        }
+                    }
+                    JPanel tabPanel = (JPanel)comp;
                     filterPanel(tabPanel, searchField.getText());
                 }
             });
@@ -164,7 +172,7 @@ public class Admin extends User {
                         JPanel labelPanel = (JPanel)recordPanel.getComponent(0);
                         for(Component label : labelPanel.getComponents()) {
                             JLabel detail = (JLabel)label;
-                            if (detail.getText().toUpperCase().contains(search.toUpperCase())) {
+                            if (detail.getText().toUpperCase().equals(search.toUpperCase())) {
                                 record.setVisible(true);
                                 break;
                             } else record.setVisible(false);
